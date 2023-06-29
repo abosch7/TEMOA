@@ -79,6 +79,7 @@ possibility.
         # If technologies are present in the curtailment set, then enough
         # capacity must be available to cover both activity and curtailment.
         return value(M.CapacityFactorProcess[r, s, d, t, v]) \
+            * value(M.CapacityFactor[r, t, v]) \
             * value(M.CapacityToActivity[r, t]) * value(M.SegFrac[s, d]) \
             * value(M.ProcessLifeFrac[r, p, t, v]) \
             * M.V_Capacity[r, t, v] == useful_activity + sum( \
@@ -87,6 +88,7 @@ possibility.
             for S_o in M.ProcessOutputsByInput[r, p, t, v, S_i])
     else:
         return value(M.CapacityFactorProcess[r, s, d, t, v]) \
+        * value(M.CapacityFactor[r, t, v]) \
         * value(M.CapacityToActivity[r, t]) \
         * value(M.SegFrac[s, d]) \
         * value(M.ProcessLifeFrac[r, p, t, v]) \
@@ -128,6 +130,7 @@ capacity.
     )
 
     return CF \
+    * value(M.CapacityFactor[r, t, v]) \
     * value(M.CapacityToActivity[r, t]) \
     * value(M.ProcessLifeFrac[r, p, t, v]) \
     * M.V_Capacity[r, t, v] >= activity_rptv
@@ -1783,11 +1786,11 @@ share that can count towards the constraint.
        \forall \{p, g\} \in \Theta_{\text{MinActivityGroup}}
 
 where :math:`g` represents the assigned technology group and :math:`MGT_r`
-refers to the :code:`MinGenGroupTarget` parameter.
+refers to the :code:`MinActivityGroup` parameter.
 """
 
     activity_p = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.MinGenGroupWeight[r, S_t, g]
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
         for r in M.RegionalIndices
         for S_t in M.tech_groups if (S_t not in M.tech_annual) and ((r, p, S_t) in M.processVintages.keys())
         for S_v in M.processVintages[r, p, S_t]
@@ -1798,7 +1801,7 @@ refers to the :code:`MinGenGroupTarget` parameter.
     )
 
     activity_p_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.MinGenGroupWeight[r, S_t, g]
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
         for r in M.RegionalIndices
         for S_t in M.tech_groups if (S_t in M.tech_annual) and ((r, p, S_t) in M.processVintages.keys())
         for S_v in M.processVintages[r, p, S_t]
@@ -1807,8 +1810,264 @@ refers to the :code:`MinGenGroupTarget` parameter.
     )
 
 
-    min_act = value(M.MinGenGroupTarget[p, g])
+    min_act = value(M.MinActivityGroup[p, g])
     expr = activity_p + activity_p_annual >= min_act
+    return expr
+
+
+def MaxActivityGroup_Constraint(M, p, g):
+    r"""
+
+The MaxActivityGroup constraint sets a maximum activity limit for a user-defined
+technology group. Each technology within each group is multiplied by a
+weighting function, which determines what technology activity share can count
+towards the constraint.
+
+.. math::
+   :label: MaxActivityGroup
+
+       \sum_{S,D,I,T,V,O} \textbf{FO}_{p, s, d, i, t, v, o} \cdot WEIGHT_{t|t \not \in T^{a}}
+       + \sum_{I,T,V,O} \textbf{FOA}_{p, i, t, v, o} \cdot WEIGHT_{t \in T^{a}}
+       \le MGGL_{p, g}
+
+       \forall \{p, g\} \in \Theta_{\text{MaxActivityGroup}}
+
+where :math:`g` represents the assigned technology group and :math:`MGGL`
+refers to the :code:` MaxActivityGroup` parameter.
+"""
+
+    activity_p = sum(
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M. TechGroupWeight[r, S_t, g]
+        for r in M.RegionalIndices
+        for S_t in M.tech_groups if (S_t not in M.tech_annual) and ((r, p, S_t) in M.processVintages.keys())
+        for S_v in M.processVintages[r, p, S_t]
+        for S_i in M.processInputs[r, p, S_t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
+        for s in M.time_season
+        for d in M.time_of_day
+    )
+
+    activity_p_annual = sum(
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M. TechGroupWeight[r, S_t, g]
+        for r in M.RegionalIndices
+        for S_t in M.tech_groups if (S_t in M.tech_annual) and ((r, p, S_t) in M.processVintages.keys())
+        for S_v in M.processVintages[r, p, S_t]
+        for S_i in M.processInputs[r, p, S_t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
+    )
+
+    max_act = value(M. MaxActivityGroup[p, g])
+    expr = activity_p + activity_p_annual <= max_act
+    return expr
+
+
+def MinCapacityGroup_Constraint(M, p, g):
+    r"""
+Similar to the :code:`MinCapacity` constraint, but works on a group of technologies.
+
+"""
+    min_cap = value(M.MinCapacityGroup[p, g])
+    aggcap = sum(
+        M.V_CapacityAvailableByPeriodAndTech[r, p, S_t] * M.TechGroupWeight[r, S_t, g]
+        for r in M.RegionalIndices
+        for S_t in M.tech_groups if (r, p, S_t) in M.processVintages.keys()
+    )
+    expr = aggcap >= min_cap
+    return expr
+
+
+def MaxCapacityGroup_Constraint(M, p, g):
+    r"""
+Similar to the :code:`MaxCapacity` constraint, but works on a group of technologies.
+
+"""
+    max_cap = value(M.MaxCapacityGroup[p, g])
+    aggcap = sum(
+        M.V_CapacityAvailableByPeriodAndTech[r, p, S_t] * M.TechGroupWeight[r, S_t, g]
+        for r in M.RegionalIndices
+        for S_t in M.tech_groups if (r, p, S_t) in M.processVintages.keys()
+    )
+    expr = aggcap <= max_cap
+    return expr
+
+
+def MinInputGroup_Constraint(M, r, p, i, g):
+    r"""
+
+Allows users to specify minimum shares of commodity inputs to a group of technologies.
+These shares can vary by model time period.
+
+"""
+    inp = sum(
+        M.V_FlowOut[r, p, s, d, i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t not in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v] if S_i == i
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
+        for s in M.time_season
+        for d in M.time_of_day
+    )
+
+    inp_annual = sum(
+        M.V_FlowOutAnnual[r, p, i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v] if S_i == i
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
+    )
+
+    total_inp = sum(
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t not in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
+        for s in M.time_season
+        for d in M.time_of_day
+    )
+
+    total_inp_annual = sum(
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
+    )
+
+    min_inp = value(M.MinInputGroup[r, p, i, g])
+    expr = (inp + inp_annual) >= min_inp * (total_inp + total_inp_annual)
+    return expr
+
+
+def MaxInputGroup_Constraint(M, r, p, i, g):
+    r"""
+
+Allows users to specify maximum shares of commodity inputs to a group of technologies.
+These shares can vary by model time period.
+
+"""
+    inp = sum(
+        M.V_FlowOut[r, p, s, d, i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t not in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v] if S_i == i
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
+        for s in M.time_season
+        for d in M.time_of_day
+    )
+
+    inp_annual = sum(
+        M.V_FlowOutAnnual[r, p, i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v] if S_i == i
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
+    )
+
+    total_inp = sum(
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t not in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
+        for s in M.time_season
+        for d in M.time_of_day
+    )
+
+    total_inp_annual = sum(
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
+    )
+
+    max_inp = value(M.MaxInputGroup[r, p, i, g])
+    expr = (inp + inp_annual) <= max_inp * (total_inp + total_inp_annual)
+    return expr
+
+
+def MaxOutputGroup_Constraint(M, r, p, o, g):
+    r"""
+
+Allows users to specify maximum shares of commodity outputs to a group of technologies.
+These shares can vary by model time period.
+
+"""
+    outp = sum(
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, o] * M.TechGroupWeight[r, S_t, g]
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t not in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i] if S_o == o
+        for s in M.time_season
+        for d in M.time_of_day
+    )
+
+    outp_annual = sum(
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, o] * M.TechGroupWeight[r, S_t, g]
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i] if S_o == o
+    )
+
+    total_outp = sum(
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t not in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
+        for s in M.time_season
+        for d in M.time_of_day
+    )
+
+    total_outp_annual = sum(
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
+    )
+
+    max_outp = value(M.MaxOutputGroup[r, p, o, g])
+    expr = (outp + outp_annual) <= max_outp * (total_outp + total_outp_annual)
     return expr
 
 
@@ -1848,7 +2107,7 @@ constraints are region and tech.
     max_resource = value(M.MaxResource[r, t])
     try:
       activity_rt = sum(
-          M.V_FlowOut[r, p, s, d, S_i, t, S_v, S_o]
+          M.V_FlowOut[r, p, s, d, S_i, t, S_v, S_o] * M.PeriodLength[p]
           for p in M.time_optimize
           if (r, p, t) in M.processVintages.keys()
           for S_v in M.processVintages[r, p, t]
@@ -1859,7 +2118,7 @@ constraints are region and tech.
       )
     except:
       activity_rt = sum(
-          M.V_FlowOutAnnual[r, p, S_i, t, S_v, S_o]
+          M.V_FlowOutAnnual[r, p, S_i, t, S_v, S_o] * M.PeriodLength[p]
           for p in M.time_optimize
           if (r, p, t) in M.processVintages.keys()
           for S_v in M.processVintages[r, p, t]
@@ -1868,20 +2127,6 @@ constraints are region and tech.
       )
 
     expr = activity_rt <= max_resource
-    return expr
-
-
-def MaxCapacitySet_Constraint(M, p):
-    r"""
-Similar to the :code:`MaxCapacity` constraint, but works on a group of technologies
-specified in the :code:`tech_capacity_max` subset.
-
-"""
-    max_cap = value(M.MaxCapacitySum[p])
-    aggcap = sum(
-        M.V_CapacityAvailableByPeriodAndTech[p, t] for t in M.tech_capacity_max
-    )
-    expr = aggcap <= max_cap
     return expr
 
 
@@ -1901,20 +2146,6 @@ tech, not tech and vintage.
 """
     min_cap = value(M.MinCapacity[r, p, t])
     expr = M.V_CapacityAvailableByPeriodAndTech[r, p, t] >= min_cap
-    return expr
-
-
-def MinCapacitySet_Constraint(M, p):
-    r"""
-Similar to the :code:`MinCapacity` constraint, but works on a group of technologies
-specified in the :code:`tech_capacity_min` subset.
-
-"""
-    min_cap = value(M.MinCapacitySum[p])
-    aggcap = sum(
-        M.V_CapacityAvailableByPeriodAndTech[p, t] for t in M.tech_capacity_min
-    )
-    expr = aggcap >= min_cap
     return expr
 
 
@@ -2148,10 +2379,9 @@ amount as follows:
     \forall \{r, p, s, d, t, v, e\} \in \Theta_{\text{LinkedTechs}}
 
 The relationship between the primary and linked technologies is given
-in the :code:`LinkedTechs` table. Note that the primary and linked
-technologies cannot be part of the :code:`tech_annual` set. It is implicit that
+in the :code:`LinkedTechs` table. It is implicit that
 the primary region corresponds to the linked technology as well. The lifetimes
-of the primary and linked technologies should be specified and identical. 
+of the primary and linked technologies should be specified and identical.
 """
     linked_t = M.LinkedTechs[r, t, e]
     if (r,t,v) in M.LifetimeProcess.keys() and M.LifetimeProcess[r, linked_t,v] != M.LifetimeProcess[r, t,v]:
@@ -2165,16 +2395,47 @@ of the primary and linked technologies should be specified and identical.
 
     primary_flow = sum(
     M.V_FlowOut[r, p, s, d, S_i, t, v, S_o]*M.EmissionActivity[r, e, S_i, t, v, S_o]
+    for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+    if S_r == r
+    if S_p == p
+    if S_t == t and S_t not in M.tech_annual
+    if S_v == v
     for S_i in M.processInputs[r, p, t, v]
     for S_o in M.ProcessOutputsByInput[r, p, t, v, S_i]
     )
 
     linked_flow = sum(
     M.V_FlowOut[r, p, s, d, S_i, linked_t, v, S_o]
+    for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+    if S_r == r
+    if S_p == p
+    if S_t == linked_t and S_t not in M.tech_annual
+    if S_v == v
     for S_i in M.processInputs[r, p, linked_t, v]
     for S_o in M.ProcessOutputsByInput[r, p, linked_t, v, S_i]
     )
 
-    expr = -primary_flow == linked_flow
-    return expr
+    primary_flow_annual = sum(
+    M.V_FlowOutAnnual[r, p, S_i, t, v, S_o]*M.EmissionActivity[r, e, S_i, t, v, S_o]
+    for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+    if S_r == r
+    if S_p == p
+    if S_t == linked_t and S_t in M.tech_annual
+    if S_v == v
+    for S_i in M.processInputs[r, p, t, v]
+    for S_o in M.ProcessOutputsByInput[r, p, t, v, S_i]
+    )
 
+    linked_flow_annual = sum(
+    M.V_FlowOutAnnual[r, p, S_i, linked_t, v, S_o]
+    for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+    if S_r == r
+    if S_p == p
+    if S_t == linked_t and S_t in M.tech_annual
+    if S_v == v
+    for S_i in M.processInputs[r, p, linked_t, v]
+    for S_o in M.ProcessOutputsByInput[r, p, linked_t, v, S_i]
+    )
+
+    expr = primary_flow + primary_flow_annual == linked_flow + linked_flow_annual
+    return expr

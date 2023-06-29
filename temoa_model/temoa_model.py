@@ -139,6 +139,9 @@ def temoa_create_model(name="Temoa"):
     )
     M.validate_UsedEfficiencyIndices = BuildAction(rule=CheckEfficiencyIndices)
 
+    M.CapacityFactor_rtv = Set(dimen=3, initialize= CapacityFactorIndices)
+    M.CapacityFactor = Param(M.CapacityFactor_rtv, default=1)
+
     M.CapacityFactor_rsdtv = Set(dimen=5, initialize=CapacityFactorProcessIndices)
     M.CapacityFactorProcess = Param(M.CapacityFactor_rsdtv, mutable=True)
 
@@ -210,17 +213,21 @@ def temoa_create_model(name="Temoa"):
     M.MinCapacity = Param(M.RegionalIndices, M.time_optimize, M.tech_all)
     M.MaxCapacity = Param(M.RegionalIndices, M.time_optimize, M.tech_all)
     M.MaxResource = Param(M.RegionalIndices, M.tech_all)
-    M.MinCapacitySum = Param(M.time_optimize)  # for techs in tech_capacity
-    M.MaxCapacitySum = Param(M.time_optimize)  # for techs in tech_capacity
     M.MaxActivity = Param(M.RegionalGlobalIndices, M.time_optimize, M.tech_all)
     M.MinActivity = Param(M.RegionalGlobalIndices, M.time_optimize, M.tech_all)
     M.GrowthRateMax = Param(M.RegionalIndices, M.tech_all)
     M.GrowthRateSeed = Param(M.RegionalIndices, M.tech_all)
     M.EmissionLimit = Param(M.RegionalGlobalIndices, M.time_optimize, M.commodity_emissions)
     M.EmissionActivity_reitvo = Set(dimen=6, initialize=EmissionActivityIndices)
-    M.EmissionActivity = Param(M.EmissionActivity_reitvo)
-    M.MinGenGroupWeight = Param(M.RegionalIndices, M.tech_groups, M.groups, default = 0)
-    M.MinGenGroupTarget = Param(M.time_optimize, M.groups)
+    M.EmissionActivity = Param(M.EmissionActivity_reitvo, default = 0)
+    M.TechGroupWeight = Param(M.RegionalIndices, M.tech_groups, M.groups, default = 0)
+    M.MinActivityGroup = Param(M.time_optimize, M.groups)
+    M.MaxActivityGroup = Param(M.time_optimize, M.groups)
+    M.MinCapacityGroup = Param(M.time_optimize, M.groups)
+    M.MaxCapacityGroup = Param(M.time_optimize, M.groups)
+    M.MinInputGroup = Param(M.regions, M.time_optimize, M.commodity_physical, M.groups)
+    M.MaxInputGroup = Param(M.regions, M.time_optimize, M.commodity_physical, M.groups)
+    M.MaxOutputGroup = Param(M.regions, M.time_optimize, M.commodity_physical, M.groups)
     M.LinkedTechs = Param(M.RegionalIndices, M.tech_all, M.commodity_emissions)
 
     # Define parameters associated with electric sector operation
@@ -448,10 +455,52 @@ def temoa_create_model(name="Temoa"):
     )
 
     M.MinActivityGroup_pg = Set(
-        dimen=2, initialize=lambda M: M.MinGenGroupTarget.sparse_iterkeys()
+        dimen=2, initialize=lambda M: M.MinActivityGroup.sparse_iterkeys()
     )
-    M.MinActivityGroup = Constraint(
+    M.MinActivityGroupConstraint = Constraint(
         M.MinActivityGroup_pg, rule=MinActivityGroup_Constraint
+    )
+
+    M.MaxActivityGroup_pg = Set(
+        dimen=2, initialize=lambda M: M.MaxActivityGroup.sparse_iterkeys()
+    )
+    M.MaxActivityGroupConstraint = Constraint(
+        M.MaxActivityGroup_pg, rule=MaxActivityGroup_Constraint
+    )
+
+    M.MinCapacityGroupConstraint_pg = Set(
+        dimen=2, initialize=lambda M: M.MinCapacityGroup.sparse_iterkeys()
+    )
+    M.MinCapacityGroupConstraint = Constraint(
+        M.MinCapacityGroupConstraint_pg, rule=MinCapacityGroup_Constraint
+    )
+
+    M.MaxCapacityGroupConstraint_pg = Set(
+        dimen=2, initialize=lambda M: M.MaxCapacityGroup.sparse_iterkeys()
+    )
+    M.MaxCapacityGroupConstraint = Constraint(
+        M.MaxCapacityGroupConstraint_pg, rule=MaxCapacityGroup_Constraint
+    )
+
+    M.MinInputGroup_Constraint_rpig = Set(
+        dimen=4, initialize=lambda M: M.MinInputGroup.sparse_iterkeys()
+    )
+    M.MinInputGroupConstraint = Constraint(
+        M.MinInputGroup_Constraint_rpig, rule=MinInputGroup_Constraint
+    )
+
+    M.MaxInputGroup_Constraint_rpig = Set(
+        dimen=4, initialize=lambda M: M.MaxInputGroup.sparse_iterkeys()
+    )
+    M.MaxInputGroupConstraint = Constraint(
+        M.MaxInputGroup_Constraint_rpig, rule=MaxInputGroup_Constraint
+    )
+
+    M.MaxOutputGroup_Constraint_rpig = Set(
+        dimen=4, initialize=lambda M: M.MaxOutputGroup.sparse_iterkeys()
+    )
+    M.MaxOutputGroupConstraint = Constraint(
+        M.MaxOutputGroup_Constraint_rpig, rule=MaxOutputGroup_Constraint
     )
 
     M.MaxCapacityConstraint_rpt = Set(
@@ -468,25 +517,11 @@ def temoa_create_model(name="Temoa"):
         M.MaxResourceConstraint_rt, rule=MaxResource_Constraint
     )
 
-    M.MaxCapacitySetConstraint_rp = Set(
-        dimen=2, initialize=lambda M: M.MaxCapacitySum.sparse_iterkeys()
-    )
-    M.MaxCapacitySetConstraint = Constraint(
-        M.MaxCapacitySetConstraint_rp, rule=MaxCapacitySet_Constraint
-    )
-
     M.MinCapacityConstraint_rpt = Set(
         dimen=3, initialize=lambda M: M.MinCapacity.sparse_iterkeys()
     )
     M.MinCapacityConstraint = Constraint(
         M.MinCapacityConstraint_rpt, rule=MinCapacity_Constraint
-    )
-
-    M.MinCapacitySetConstraint_rp = Set(
-        dimen=2, initialize=lambda M: M.MinCapacitySum.sparse_iterkeys()
-    )
-    M.MinCapacitySetConstraint = Constraint(
-        M.MinCapacitySetConstraint_rp, rule=MinCapacitySet_Constraint
     )
 
     M.TechInputSplitConstraint_rpsditv = Set(

@@ -796,6 +796,17 @@ def CreateSparseDicts ( M ):
 # associated with specific parameters.
 # ---------------------------------------------------------------
 
+def CapacityFactorIndices(M):
+	indices = set(
+		(r, t, v)
+
+		for r in M.regions
+		for t in M.tech_all
+		for v in M.vintage_all
+	)
+
+	return indices
+
 def CapacityFactorProcessIndices ( M ):
 	indices = set(
 	  (r, s, d, t, v)
