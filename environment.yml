@@ -2,6 +2,7 @@ name: temoa-py3
 channels:
     - defaults
     - conda-forge
+    - gurobi
 dependencies:
     # Requirements for core model functionality
     - python=3.7.3
@@ -33,6 +34,5 @@ dependencies:
     - sphinxcontrib-htmlhelp
     - sphinxcontrib-serializinghtml
     - sphinxcontrib-bibtex
-    # cbc solver below cannot be installed via Conda on Windows
-    - coincbc
+    - gurobi
 
