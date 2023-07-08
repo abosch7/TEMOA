@@ -1837,7 +1837,7 @@ refers to the :code:` MaxActivityGroup` parameter.
 """
 
     activity_p = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M. TechGroupWeight[r, S_t, g]
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
         for r in M.RegionalIndices
         for S_t in M.tech_groups if (S_t not in M.tech_annual) and ((r, p, S_t) in M.processVintages.keys())
         for S_v in M.processVintages[r, p, S_t]
@@ -1848,7 +1848,7 @@ refers to the :code:` MaxActivityGroup` parameter.
     )
 
     activity_p_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M. TechGroupWeight[r, S_t, g]
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
         for r in M.RegionalIndices
         for S_t in M.tech_groups if (S_t in M.tech_annual) and ((r, p, S_t) in M.processVintages.keys())
         for S_v in M.processVintages[r, p, S_t]
@@ -1856,7 +1856,7 @@ refers to the :code:` MaxActivityGroup` parameter.
         for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
     )
 
-    max_act = value(M. MaxActivityGroup[p, g])
+    max_act = value(M.MaxActivityGroup[p, g])
     expr = activity_p + activity_p_annual <= max_act
     return expr
 
@@ -2008,6 +2008,66 @@ These shares can vary by model time period.
 
     max_inp = value(M.MaxInputGroup[r, p, i, g])
     expr = (inp + inp_annual) <= max_inp * (total_inp + total_inp_annual)
+    return expr
+
+
+def MinOutputGroup_Constraint(M, r, p, o, g):
+    r"""
+
+Allows users to specify minimum shares of commodity outputs to a group of technologies.
+These shares can vary by model time period.
+
+"""
+    outp = sum(
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, o] * M.TechGroupWeight[r, S_t, g]
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t not in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i] if S_o == o
+        for s in M.time_season
+        for d in M.time_of_day
+    )
+
+    outp_annual = sum(
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, o] * M.TechGroupWeight[r, S_t, g]
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i] if S_o == o
+    )
+
+    total_outp = sum(
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t not in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
+        for s in M.time_season
+        for d in M.time_of_day
+    )
+
+    total_outp_annual = sum(
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
+        for S_r, S_p, S_t, S_v in M.activeActivity_rptv
+        if S_r == r
+        if S_p == p
+        if S_t in M.tech_groups
+        if S_t in M.tech_annual
+        for S_i in M.processInputs[r, p, S_t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
+    )
+
+    min_outp = value(M.MinOutputGroup[r, p, o, g])
+    expr = (outp + outp_annual) >= min_outp * (total_outp + total_outp_annual)
     return expr
 
 

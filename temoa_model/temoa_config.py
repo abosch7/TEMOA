@@ -135,6 +135,7 @@ def db_2_dat(ifile, ofile, options):
 		['param','MaxCapacityGroup',          '',                    '',             2],
 		['param','MinInputGroup',             '',                    '',             4],
 		['param','MaxInputGroup',             '',                    '',             4],
+		['param','MinOutputGroup',            '',                    '',             4],
 		['param','MaxOutputGroup',            '',                    '',             4],
 		['param','LinkedTechs',               '',                    '',             3],
 		['param','SegFrac',                   '',                    '',             2],

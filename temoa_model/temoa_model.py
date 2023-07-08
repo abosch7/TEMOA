@@ -139,7 +139,7 @@ def temoa_create_model(name="Temoa"):
     )
     M.validate_UsedEfficiencyIndices = BuildAction(rule=CheckEfficiencyIndices)
 
-    M.CapacityFactor_rtv = Set(dimen=3, initialize= CapacityFactorIndices)
+    M.CapacityFactor_rtv = Set(dimen=3, initialize=CapacityFactorIndices)
     M.CapacityFactor = Param(M.CapacityFactor_rtv, default=1)
 
     M.CapacityFactor_rsdtv = Set(dimen=5, initialize=CapacityFactorProcessIndices)
@@ -219,14 +219,15 @@ def temoa_create_model(name="Temoa"):
     M.GrowthRateSeed = Param(M.RegionalIndices, M.tech_all)
     M.EmissionLimit = Param(M.RegionalGlobalIndices, M.time_optimize, M.commodity_emissions)
     M.EmissionActivity_reitvo = Set(dimen=6, initialize=EmissionActivityIndices)
-    M.EmissionActivity = Param(M.EmissionActivity_reitvo, default = 0)
-    M.TechGroupWeight = Param(M.RegionalIndices, M.tech_groups, M.groups, default = 0)
+    M.EmissionActivity = Param(M.EmissionActivity_reitvo, default=0)
+    M.TechGroupWeight = Param(M.RegionalIndices, M.tech_groups, M.groups, default=0)
     M.MinActivityGroup = Param(M.time_optimize, M.groups)
     M.MaxActivityGroup = Param(M.time_optimize, M.groups)
     M.MinCapacityGroup = Param(M.time_optimize, M.groups)
     M.MaxCapacityGroup = Param(M.time_optimize, M.groups)
     M.MinInputGroup = Param(M.regions, M.time_optimize, M.commodity_physical, M.groups)
     M.MaxInputGroup = Param(M.regions, M.time_optimize, M.commodity_physical, M.groups)
+    M.MinOutputGroup = Param(M.regions, M.time_optimize, M.commodity_physical, M.groups)
     M.MaxOutputGroup = Param(M.regions, M.time_optimize, M.commodity_physical, M.groups)
     M.LinkedTechs = Param(M.RegionalIndices, M.tech_all, M.commodity_emissions)
 
@@ -494,6 +495,13 @@ def temoa_create_model(name="Temoa"):
     )
     M.MaxInputGroupConstraint = Constraint(
         M.MaxInputGroup_Constraint_rpig, rule=MaxInputGroup_Constraint
+    )
+
+    M.MinOutputGroup_Constraint_rpig = Set(
+        dimen=4, initialize=lambda M: M.MinOutputGroup.sparse_iterkeys()
+    )
+    M.MinOutputGroupConstraint = Constraint(
+        M.MinOutputGroup_Constraint_rpig, rule=MinOutputGroup_Constraint
     )
 
     M.MaxOutputGroup_Constraint_rpig = Set(
