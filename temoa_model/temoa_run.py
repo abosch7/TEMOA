@@ -376,9 +376,10 @@ class TemoaSolverInstance(object):
 			self.txt_file.write( 'Solving.')
 			if self.optimizer:
 				if self.options.neos:
-				    self.result = self.optimizer.solve(self.instance, opt=self.options.solver)
+					self.result = self.optimizer.solve(self.instance, opt=self.options.solver)
 				else:
-				    self.result = self.optimizer.solve( self.instance, suffixes=['dual'],# 'rc', 'slack'],
+					self.optimizer.set_options('Method=2')  # Barrier Algorithm
+					self.result = self.optimizer.solve( self.instance, suffixes=['dual'],# 'rc', 'slack'],
 								keepfiles=self.options.keepPyomoLP,
 								symbolic_solver_labels=self.options.keepPyomoLP )
 				yield '\t\t\t\t\t\t[%8.2f]\n' % duration()
