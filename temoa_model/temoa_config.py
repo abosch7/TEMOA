@@ -169,6 +169,7 @@ def db_2_dat(ifile, ofile, options):
 		['param','CostInvest',                '',                    '',             3],
 		['param','CostFixed',                 '',                    '',             4],
 		['param','CostVariable',              '',                    '',             4],
+		['param','CostEmission',              '',                    '',             3],
 		['param','CapacityCredit',            '',                    '',             4],
 		['param','RampUp',                    '',                    '',             2],
 		['param','RampDown',                  '',                    '',             2],

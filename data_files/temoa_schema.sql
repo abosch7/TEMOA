@@ -495,6 +495,16 @@ CREATE TABLE "Demand" (
 	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods"),
 	FOREIGN KEY("demand_comm") REFERENCES "commodities"("comm_name")
 );
+CREATE TABLE "CostEmission" (
+	"regions"			text NOT NULL,
+	"periods"			integer NOT NULL,
+	"emis_comm"			text NOT NULL,
+	"emis_cost"			real,
+	"emis_cost_notes"	text,
+	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("emis_comm") REFERENCES "commodities"("comm_name"),
+	PRIMARY KEY("regions","periods","emis_comm")
+);
 CREATE TABLE "CostVariable" (
 	"regions"	text NOT NULL,
 	"periods"	integer NOT NULL,

@@ -833,6 +833,17 @@ def CostFixedIndices ( M ):
 def CostVariableIndices ( M ):
 	return M.activeActivity_rptv
 
+def CostEmissionIndices(M):
+	indices = set(
+		(r, p, e)
+
+		for r in M.regions
+		for p in M.time_optimize
+		for e in M.commodity_emissions
+	)
+
+	return indices
+
 def CostInvestIndices ( M ):
 	indices = set(
 	  (r, t, v)

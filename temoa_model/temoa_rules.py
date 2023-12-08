@@ -393,7 +393,40 @@ def PeriodCost_rule(M, p):
         for S_o in M.ProcessOutputsByInput[r, S_p, S_t, S_v, S_i]
     )
 
-    period_costs = loan_costs + fixed_costs + variable_costs + variable_costs_annual
+    emission_costs = sum(
+        M.V_FlowOut[r, p, S_s, S_d, S_i, S_t, S_v, S_o] * M.EmissionActivity[r, e, S_i, S_t, S_v, S_o] * M.CostEmission[r, p, e]
+        * (
+            value(MPL[r, p, S_t, S_v])
+            if not GDR
+            else (x ** (P_0 - p + 1) * (1 - x ** (-value(MPL[r, p, S_t, S_v]))) / GDR)
+        )
+
+        for r, p, e in M.CostEmission.sparse_iterkeys()
+
+        for r, S_e, S_i, S_t, S_v, S_o in M.EmissionActivity.sparse_iterkeys()
+        #if int(M.EmissionActivity[r, S_e, S_i, S_t, S_v, S_o]) > 0
+        if S_e == e and S_t not in M.tech_annual and (r, p, S_t, S_v) in M.processInputs.keys()
+
+        for S_s in M.time_season
+        for S_d in M.time_of_day
+    )
+
+    emission_costs_annual = sum(
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.EmissionActivity[r, e, S_i, S_t, S_v, S_o] * M.CostEmission[r, p, e]
+        * (
+            value(MPL[r, p, S_t, S_v])
+            if not GDR
+            else (x ** (P_0 - p + 1) * (1 - x ** (-value(MPL[r, p, S_t, S_v]))) / GDR)
+        )
+        
+        for r, p, e in M.CostEmission.sparse_iterkeys()
+
+        for r, S_e, S_i, S_t, S_v, S_o in M.EmissionActivity.sparse_iterkeys()
+        #if int(M.EmissionActivity[r, S_e, S_i, S_t, S_v, S_o]) > 0
+        if S_e == e and S_t in M.tech_annual and (r, p, S_t, S_v) in M.processInputs.keys()
+    )
+
+    period_costs = loan_costs + fixed_costs + variable_costs + variable_costs_annual + emission_costs + emission_costs_annual
     return period_costs
 
 
