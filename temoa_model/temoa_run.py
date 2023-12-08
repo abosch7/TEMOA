@@ -378,7 +378,7 @@ class TemoaSolverInstance(object):
 				if self.options.neos:
 					self.result = self.optimizer.solve(self.instance, opt=self.options.solver)
 				else:
-					self.optimizer.set_options('Method=2')  # Barrier Algorithm
+					#self.optimizer.set_options('Method=2')  # Barrier Algorithm
 					self.result = self.optimizer.solve( self.instance, suffixes=['dual'],# 'rc', 'slack'],
 								keepfiles=self.options.keepPyomoLP,
 								symbolic_solver_labels=self.options.keepPyomoLP )
