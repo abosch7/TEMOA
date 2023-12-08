@@ -1,7 +1,7 @@
 # TEMOA
 ## Model features
 
-This is the 'costemission' branche of the [MAHTEP](http://www.mahtep.polito.it/) extended version of the [TEMOA](https://temoacloud.com/) (Tools for Energy Modeling Optimization and Analysis) energy system modeling framework. The difference with respect of the 'energysystem' branch consist on the possibility to apply a cost to the emission of a specific emission commodity in a specific time period. It can be used to study the effect of a carbon tax on the system.
+This is the 'costemission' branch of the [MAHTEP](http://www.mahtep.polito.it/) version of the [TEMOA](https://temoacloud.com/) (Tools for Energy Modeling Optimization and Analysis) energy system modeling framework. The difference with respect of the 'energysystem' branch consists in the possibility to apply a cost to the emission of a specific emission commodity in a specific time period. It can be used to study the effect of a carbon tax on the system.
 
 # Overview
 
