@@ -511,6 +511,7 @@ def CreateRegionalIndices ( M ):
 				regional_indices.add(r_i)
 			else:
 				regional_indices.add(r_i+"-"+r_j)
+	regional_indices.add('global')
 	return regional_indices
 
 
@@ -800,9 +801,7 @@ def CapacityFactorIndices(M):
 	indices = set(
 		(r, t, v)
 
-		for r in M.regions
-		for t in M.tech_all
-		for v in M.vintage_all
+		for r, i, t, v, o in M.Efficiency.sparse_iterkeys()
 	)
 
 	return indices
@@ -841,19 +840,6 @@ def CostInvestIndices ( M ):
 	)
 
 	return indices
-
-def RegionalGlobalInitializedIndices ( M ):
-	from itertools import permutations
-	indices = set()
-	for n in range(1,len(M.regions)+1):
-		regional_perms = permutations(M.regions,n)
-		for i in regional_perms:
-			indices.add("+".join(i))
-	indices.add('global')
-	indices = indices.union(M.RegionalIndices)
-
-	return indices
-
 
 def EmissionActivityIndices ( M ):
 	indices = set(

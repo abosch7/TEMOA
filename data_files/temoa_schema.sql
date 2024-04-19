@@ -100,12 +100,11 @@ CREATE TABLE "groups" (
 	PRIMARY KEY("group_name")
 );
 CREATE TABLE "TechGroupWeight" (
-	"regions"	        text,
 	"tech"		        text,
 	"group_name"	    text,
 	"weight"	real,
 	"tech_desc"	        text,
-	PRIMARY KEY("tech","group_name","regions")
+	PRIMARY KEY("tech","group_name")
 );
 CREATE TABLE "MinActivityGroup" (
 	"regions"	text,
@@ -116,6 +115,7 @@ CREATE TABLE "MinActivityGroup" (
 	PRIMARY KEY("periods","group_name","regions")
 );
 CREATE TABLE "MaxActivityGroup" (
+	"regions"	text,
 	"periods"	integer,
 	"group_name"	text,
 	"max_act_g"	real,
@@ -123,6 +123,7 @@ CREATE TABLE "MaxActivityGroup" (
 	PRIMARY KEY("periods","group_name")
 );
 CREATE TABLE "MinCapacityGroup" (
+	"regions"	text,
 	"periods"	integer,
 	"group_name"	text,
 	"min_cap_g"	real,
@@ -130,6 +131,7 @@ CREATE TABLE "MinCapacityGroup" (
 	PRIMARY KEY("periods","group_name")
 );
 CREATE TABLE "MaxCapacityGroup" (
+	"regions"	text,
 	"periods"	integer,
 	"group_name"	text,
 	"max_cap_g"	real,
@@ -240,22 +242,22 @@ CREATE TABLE "StorageDuration" (
 	PRIMARY KEY("regions","tech")
 );
 CREATE TABLE "PlanningReserveMargin" (
-	`regions`	text,
-	`reserve_margin`	REAL,
-	PRIMARY KEY(regions),
-	FOREIGN KEY(`regions`) REFERENCES regions
+	"regions"	text,
+	"reserve_margin"	REAL,
+	PRIMARY KEY("regions"),
+	FOREIGN KEY("regions") REFERENCES regions
 );
 CREATE TABLE "RampDown" (
-	`regions`	text,
-	`tech`	text,
-	`ramp_down` real,
+	"regions"	text,
+	"tech"	text,
+	"ramp_down" real,
 	PRIMARY KEY("regions", "tech"),
 	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
 );
 CREATE TABLE "RampUp" (
-	`regions`	text,
-	`tech`	text,
-	`ramp_up` real,
+	"regions"	text,
+	"tech"	text,
+	"ramp_up" real,
 	PRIMARY KEY("regions", "tech"),
 	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
 );

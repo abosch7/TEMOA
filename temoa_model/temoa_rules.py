@@ -1768,7 +1768,7 @@ set.
     return expr
 
 
-def MinActivityGroup_Constraint(M, p, g):
+def MinActivityGroup_Constraint(M, r, p, g):
     r"""
 
 The MinActivityGroup constraint sets a minimum activity limit for a user-defined
@@ -1788,10 +1788,16 @@ share that can count towards the constraint.
 where :math:`g` represents the assigned technology group and :math:`MGT_r`
 refers to the :code:`MinActivityGroup` parameter.
 """
+    if r == 'global':
+      reg = M.regions
+    elif '+' in r:
+      reg = r.split('+')
+    else:
+      reg = [r]
 
     activity_p = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
-        for r in M.RegionalIndices
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
+        for r in reg
         for S_t in M.tech_groups if (S_t not in M.tech_annual) and ((r, p, S_t) in M.processVintages.keys())
         for S_v in M.processVintages[r, p, S_t]
         for S_i in M.processInputs[r, p, S_t, S_v]
@@ -1801,8 +1807,8 @@ refers to the :code:`MinActivityGroup` parameter.
     )
 
     activity_p_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
-        for r in M.RegionalIndices
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
+        for r in reg
         for S_t in M.tech_groups if (S_t in M.tech_annual) and ((r, p, S_t) in M.processVintages.keys())
         for S_v in M.processVintages[r, p, S_t]
         for S_i in M.processInputs[r, p, S_t, S_v]
@@ -1810,12 +1816,12 @@ refers to the :code:`MinActivityGroup` parameter.
     )
 
 
-    min_act = value(M.MinActivityGroup[p, g])
+    min_act = value(M.MinActivityGroup[r, p, g])
     expr = activity_p + activity_p_annual >= min_act
     return expr
 
 
-def MaxActivityGroup_Constraint(M, p, g):
+def MaxActivityGroup_Constraint(M, r, p, g):
     r"""
 
 The MaxActivityGroup constraint sets a maximum activity limit for a user-defined
@@ -1835,10 +1841,16 @@ towards the constraint.
 where :math:`g` represents the assigned technology group and :math:`MGGL`
 refers to the :code:` MaxActivityGroup` parameter.
 """
+    if r == 'global':
+      reg = M.regions
+    elif '+' in r:
+      reg = r.split('+')
+    else:
+      reg = [r]
 
     activity_p = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
-        for r in M.RegionalIndices
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
+        for r in reg
         for S_t in M.tech_groups if (S_t not in M.tech_annual) and ((r, p, S_t) in M.processVintages.keys())
         for S_v in M.processVintages[r, p, S_t]
         for S_i in M.processInputs[r, p, S_t, S_v]
@@ -1848,43 +1860,57 @@ refers to the :code:` MaxActivityGroup` parameter.
     )
 
     activity_p_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
-        for r in M.RegionalIndices
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
+        for r in reg
         for S_t in M.tech_groups if (S_t in M.tech_annual) and ((r, p, S_t) in M.processVintages.keys())
         for S_v in M.processVintages[r, p, S_t]
         for S_i in M.processInputs[r, p, S_t, S_v]
         for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
     )
 
-    max_act = value(M.MaxActivityGroup[p, g])
+    max_act = value(M.MaxActivityGroup[r, p, g])
     expr = activity_p + activity_p_annual <= max_act
     return expr
 
 
-def MinCapacityGroup_Constraint(M, p, g):
+def MinCapacityGroup_Constraint(M, r, p, g):
     r"""
 Similar to the :code:`MinCapacity` constraint, but works on a group of technologies.
 
 """
-    min_cap = value(M.MinCapacityGroup[p, g])
+    if r == 'global':
+      reg = M.regions
+    elif '+' in r:
+      reg = r.split('+')
+    else:
+      reg = [r]
+
+    min_cap = value(M.MinCapacityGroup[r, p, g])
     aggcap = sum(
-        M.V_CapacityAvailableByPeriodAndTech[r, p, S_t] * M.TechGroupWeight[r, S_t, g]
-        for r in M.RegionalIndices
+        M.V_CapacityAvailableByPeriodAndTech[r, p, S_t] * M.TechGroupWeight[S_t, g]
+        for r in reg
         for S_t in M.tech_groups if (r, p, S_t) in M.processVintages.keys()
     )
     expr = aggcap >= min_cap
     return expr
 
 
-def MaxCapacityGroup_Constraint(M, p, g):
+def MaxCapacityGroup_Constraint(M, r, p, g):
     r"""
 Similar to the :code:`MaxCapacity` constraint, but works on a group of technologies.
 
 """
-    max_cap = value(M.MaxCapacityGroup[p, g])
+    if r == 'global':
+      reg = M.regions
+    elif '+' in r:
+      reg = r.split('+')
+    else:
+      reg = [r]
+    
+    max_cap = value(M.MaxCapacityGroup[r, p, g])
     aggcap = sum(
-        M.V_CapacityAvailableByPeriodAndTech[r, p, S_t] * M.TechGroupWeight[r, S_t, g]
-        for r in M.RegionalIndices
+        M.V_CapacityAvailableByPeriodAndTech[r, p, S_t] * M.TechGroupWeight[S_t, g]
+        for r in reg
         for S_t in M.tech_groups if (r, p, S_t) in M.processVintages.keys()
     )
     expr = aggcap <= max_cap
@@ -1898,10 +1924,17 @@ Allows users to specify minimum shares of commodity inputs to a group of technol
 These shares can vary by model time period.
 
 """
+    if r == 'global':
+      reg = M.regions
+    elif '+' in r:
+      reg = r.split('+')
+    else:
+      reg = [r]
+    
     inp = sum(
-        M.V_FlowOut[r, p, s, d, i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
+        M.V_FlowOut[r, p, s, d, i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -1912,9 +1945,9 @@ These shares can vary by model time period.
     )
 
     inp_annual = sum(
-        M.V_FlowOutAnnual[r, p, i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
+        M.V_FlowOutAnnual[r, p, i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -1923,9 +1956,9 @@ These shares can vary by model time period.
     )
 
     total_inp = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -1936,9 +1969,9 @@ These shares can vary by model time period.
     )
 
     total_inp_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -1958,10 +1991,17 @@ Allows users to specify maximum shares of commodity inputs to a group of technol
 These shares can vary by model time period.
 
 """
+    if r == 'global':
+      reg = M.regions
+    elif '+' in r:
+      reg = r.split('+')
+    else:
+      reg = [r]
+    
     inp = sum(
-        M.V_FlowOut[r, p, s, d, i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
+        M.V_FlowOut[r, p, s, d, i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -1972,9 +2012,9 @@ These shares can vary by model time period.
     )
 
     inp_annual = sum(
-        M.V_FlowOutAnnual[r, p, i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
+        M.V_FlowOutAnnual[r, p, i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -1983,9 +2023,9 @@ These shares can vary by model time period.
     )
 
     total_inp = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -1996,9 +2036,9 @@ These shares can vary by model time period.
     )
 
     total_inp_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -2018,10 +2058,17 @@ Allows users to specify minimum shares of commodity outputs to a group of techno
 These shares can vary by model time period.
 
 """
+    if r == 'global':
+      reg = M.regions
+    elif '+' in r:
+      reg = r.split('+')
+    else:
+      reg = [r]
+    
     outp = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, o] * M.TechGroupWeight[r, S_t, g]
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, o] * M.TechGroupWeight[S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -2032,9 +2079,9 @@ These shares can vary by model time period.
     )
 
     outp_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, o] * M.TechGroupWeight[r, S_t, g]
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, o] * M.TechGroupWeight[S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -2043,9 +2090,9 @@ These shares can vary by model time period.
     )
 
     total_outp = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -2056,9 +2103,9 @@ These shares can vary by model time period.
     )
 
     total_outp_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -2078,10 +2125,17 @@ Allows users to specify maximum shares of commodity outputs to a group of techno
 These shares can vary by model time period.
 
 """
+    if r == 'global':
+      reg = M.regions
+    elif '+' in r:
+      reg = r.split('+')
+    else:
+      reg = [r]
+    
     outp = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, o] * M.TechGroupWeight[r, S_t, g]
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, o] * M.TechGroupWeight[S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -2092,9 +2146,9 @@ These shares can vary by model time period.
     )
 
     outp_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, o] * M.TechGroupWeight[r, S_t, g]
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, o] * M.TechGroupWeight[S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -2103,9 +2157,9 @@ These shares can vary by model time period.
     )
 
     total_outp = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -2116,9 +2170,9 @@ These shares can vary by model time period.
     )
 
     total_outp_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r == r
+        if S_r in reg
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -2145,8 +2199,21 @@ tech, not tech and vintage.
 
    \forall \{r, p, t\} \in \Theta_{\text{MaxCapacity}}
 """
+    if r == 'global':
+      reg = M.regions
+    elif '+' in r:
+      reg = r.split('+')
+    else:
+      reg = [r]
+
+    capacity_rpt = sum(
+        M.V_CapacityAvailableByPeriodAndTech[r, p, t]
+        for r in reg
+        if (r,p,t) in M.V_CapacityAvailableByPeriodAndTech
+    )
+
     max_cap = value(M.MaxCapacity[r, p, t])
-    expr = M.V_CapacityAvailableByPeriodAndTech[r, p, t] <= max_cap
+    expr = capacity_rpt <= max_cap
     return expr
 
 
@@ -2204,8 +2271,21 @@ tech, not tech and vintage.
 
    \forall \{r, p, t\} \in \Theta_{\text{MinCapacity}}
 """
+    if r == 'global':
+      reg = M.regions
+    elif '+' in r:
+      reg = r.split('+')
+    else:
+      reg = [r]
+
+    capacity_rpt = sum(
+        M.V_CapacityAvailableByPeriodAndTech[r, p, t]
+        for r in reg
+        if (r,p,t) in M.V_CapacityAvailableByPeriodAndTech
+    )
+
     min_cap = value(M.MinCapacity[r, p, t])
-    expr = M.V_CapacityAvailableByPeriodAndTech[r, p, t] >= min_cap
+    expr = capacity_rpt >= min_cap
     return expr
 
 
