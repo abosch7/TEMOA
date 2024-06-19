@@ -51,12 +51,9 @@ from pformat_results import pformat_results
 
 from collections import defaultdict
 from temoa_rules import TotalCost_rule, ActivityByTech_Constraint
-#from temoa_rules import EnergySupplyRisk_Constraint#, MaterialSupplyRisk_Constraint #MOO
 from temoa_mga   import ActivityObj_rule, SlackedObjective_rule, PreviousAct_rule
-from temoa_moo   import f1lowest_rule, f2lowest_rule, f2highest_rule, f1SlackedObjective_rule, f2SlackedConstraint_rule #MOO
-
 import traceback
-import math, numpy as np #MOO
+
 
 signal(SIGINT, default_int_handler)
 
@@ -227,126 +224,6 @@ class TemoaSolver(object):
 			#Update MGA objective function weights for use in the next iteration
 			prev_activity_t = PreviousAct_rule( temoaMGAInstance.instance, self.options.mga_weight, prev_activity_t )
 
-	def solveWithMOO(self): #MOO
-
-		print("Solving MOO")
-		scenario_names = []
-		scenario_names.append( self.options.scenario )
-		print(f'f1 = {self.options.moo_f1}')
-		print(f'f2 = {self.options.moo_f2}')
-
-		# (a) Determine the Pareto boundaries
-		self.model.del_component( 'TotalCost' ) # TotalCost objective removed from temoa_model
-
-		# (a.1) Calculate f1_lowest
-		# 1 Create concrete model
-		temoaInstance1 = TemoaSolverInstance(self.model, self.optimizer, self.options, self.txt_file)
-		for k in temoaInstance1.create_temoa_instance(): # create the model instance w/o the TotalCost objective
-			yield k
-
-		# 2 Now add back TotalCost objective
-		temoaInstance1.instance.V_slack = Var(domain=NonNegativeReals, initialize=0)  # Define the slack variable s
-		temoaInstance1.instance.FirstObj = Objective(
-			expr=f1lowest_rule(temoaInstance1.instance, self.options.moo_f1), noruleinit=True, sense=minimize)
-		temoaInstance1.instance.preprocess()
-
-		# 3 Solve model
-		for k in temoaInstance1.solve_temoa_instance():
-			yield k
-
-		temoaInstance1.handle_files(log_name='Complete_OutputLog.log' )
-		Lowest_First_Obj = value( temoaInstance1.instance.FirstObj ) # Retrieve f1_lowest
-		print(f"{self.options.moo_f1}_lowest = {Lowest_First_Obj}")
-
-		# (a.2) Calculate f2_lowest
-		# 1 Create concrete model
-		temoaInstance2 = TemoaSolverInstance(self.model, self.optimizer, self.options, self.txt_file)
-		for k in temoaInstance2.create_temoa_instance():  # create the model instance w/o the TotalCost objective
-			yield k
-
-		# 2 Now add back 2nd objective
-		temoaInstance2.instance.V_slack = Var(domain=NonNegativeReals, initialize=0)  # Define the slack variable s
-		temoaInstance2.instance.SecondObj = Objective(
-			expr=f2lowest_rule(temoaInstance2.instance, self.options.moo_f2), noruleinit=True, sense=minimize)
-		temoaInstance2.instance.preprocess()
-
-		# 3 Solve model
-		for k in temoaInstance2.solve_temoa_instance():
-			yield k
-
-		temoaInstance2.handle_files(log_name='Complete_OutputLog.log')
-		Lowest_Second_Obj = value(temoaInstance2.instance.SecondObj)  # Retrieve f2_lowest
-		print(f"{self.options.moo_f2}_lowest = {Lowest_Second_Obj}")
-
-		# (a.3) Calculate f2_highest
-		# 1 Create concrete model
-		temoaInstance3 = TemoaSolverInstance(self.model, self.optimizer, self.options, self.txt_file)
-		for k in temoaInstance3.create_temoa_instance():  # create the model instance w/o the TotalCost objective
-			yield k
-
-		# 2 Now add back 2nd objective
-		temoaInstance3.instance.V_slack = Var(domain=NonNegativeReals, initialize=0)  # Define the slack variable s
-
-		temoaInstance3.instance.ThirdObj = Objective(
-			expr=f2lowest_rule(temoaInstance3.instance, self.options.moo_f2), noruleinit=True, sense=minimize)
-
-		temoaInstance3.instance.f2Highest = Constraint(
-		rule=None, expr=f2highest_rule( temoaInstance3.instance, self.options.moo_f1, Lowest_First_Obj ), noruleinit=True)
-
-		temoaInstance3.instance.preprocess()
-
-		# 3 Solve model
-		for k in temoaInstance3.solve_temoa_instance():
-			yield k
-
-		temoaInstance3.handle_files(log_name='Complete_OutputLog.log')
-		Highest_Second_Obj = value(temoaInstance3.instance.ThirdObj)  # Retrieve f2_highest
-		print(f"{self.options.moo_f2}_highest = {Highest_Second_Obj}")
-
-		# (b) Decide caps
-		n = self.options.moo_ncaps  # da definire in temoa_config
-		caps = np.linspace(Lowest_Second_Obj, Highest_Second_Obj, n)
-		#caps = [127000]
-		print(caps)
-
-		# (c) Calculate Pareto optimal solutions - Iterative
-		n_caps = 0
-		while self.options.next_moo():
-
-			# 1 Create concrete model
-			temoaMOOInstance = TemoaSolverInstance(self.model, self.optimizer, self.options, self.txt_file)
-			for k in temoaMOOInstance.create_temoa_instance():
-				yield k
-
-			try:
-				txt_file_moo = open(self.options.path_to_logs+os.sep+"Complete_OutputLog.log", "w")
-			except BaseException as io_exc:
-				yield "MOO Log file cannot be opened. Please check path. Trying to find:\n"+self.options.path_to_logs+" folder\n"
-				SE.write("MOO Log file cannot be opened. Please check path. Trying to find:\n"+self.options.path_to_logs+" folder\n")
-				txt_file_moo = open("OutputLog_MOO_last.log", "w")
-
-			# 2 Now add back ...
-			temoaMOOInstance.instance.V_slack = Var(domain=NonNegativeReals, initialize=0) # Define the slack variable s
-
-			if caps[n_caps] <= 0:
-				of2 = math.floor(math.log(Highest_Second_Obj, 10))
-			else:
-				of2 = math.floor(math.log(caps[n_caps], 10))
-
-			temoaMOOInstance.instance.SlackedFirstObj = Objective(
-			expr=f1SlackedObjective_rule( temoaMOOInstance.instance, self.options.moo_f1, self.options.moo_c, of2 ), noruleinit=True, sense=minimize ) # Define the new f1 obj: f1 - s*c/o(f2)
-
-			temoaMOOInstance.instance.SlackedSecondObjective = Constraint(
-				rule=None, expr=f2SlackedConstraint_rule(temoaMOOInstance.instance, self.options.moo_f2, caps[n_caps]),
-				noruleinit=True)  # Define the new f2 constraint: f2 + s = eps
-
-			temoaMOOInstance.instance.preprocess()
-
-			# 3 Solve the model
-			for k in temoaMOOInstance.solve_temoa_instance():
-				yield k
-			temoaMOOInstance.handle_files(log_name='Complete_OutputLog.log' )
-			n_caps+=1
 
 	'''
 	This function is called when MGA option is not specified.
@@ -387,15 +264,10 @@ class TemoaSolver(object):
 			self.txt_file = open("Complete_OutputLog.log", "w")
 			self.txt_file.write("Log file cannot be opened. Please check path. Trying to find:\n"+self.options.path_to_logs+" folder\n")
 
+		# Check and see if mga attribute exists and if mga is specified
 		try:
-			if hasattr(self.options, 'mga') and self.options.mga: # Check and see if mga attribute exists and if mga is specified
+			if hasattr(self.options, 'mga') and self.options.mga:
 				for k in self.solveWithMGA():
-					#yield "<div>" + k + "</div>"
-					yield k
-					#yield " " * 1024
-			elif hasattr(self.options, 'moo_c') and self.options.moo_c:  # MOO: Check and see if moo attribute exists and if moo is specified
-				print("HELLO")
-				for k in self.solveWithMOO():
 					#yield "<div>" + k + "</div>"
 					yield k
 					#yield " " * 1024
@@ -506,10 +378,10 @@ class TemoaSolverInstance(object):
 				if self.options.neos:
 					self.result = self.optimizer.solve(self.instance, opt=self.options.solver)
 				else:
-					self.optimizer.set_options('Method=2')  # Barrier Algorithm
+					#self.optimizer.set_options('Method=2')  # Barrier Algorithm
 					self.result = self.optimizer.solve( self.instance, suffixes=['dual'],# 'rc', 'slack'],
 								keepfiles=self.options.keepPyomoLP,
-								symbolic_solver_labels=self.options.keepPyomoLP, tee=True)
+								symbolic_solver_labels=self.options.keepPyomoLP )
 				yield '\t\t\t\t\t\t[%8.2f]\n' % duration()
 				SE.write( '\r[%8.2f]\n' % duration() )
 				self.txt_file.write( '[%8.2f]\n' % duration() )

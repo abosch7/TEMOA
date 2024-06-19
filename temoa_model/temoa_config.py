@@ -121,18 +121,24 @@ def db_2_dat(ifile, ofile, options):
 		['set',  'technologies',              'tech_storage',  		 'ps',           0],
 		['set',  'tech_ramping',              '',                    '',             0],
 		['set',  'tech_exchange',             '',                    '',             0],
+		['set',  'tech_imports',              '',                    '',             0], #EnergySR
+		['set',  'tech_exports',              '',                    '',             0], #EnergySR
+		['set',  'tech_domestic',             '',                    '',             0], #EnergySR
 		['set',  'commodities',               'commodity_physical',  'p',            0],
+		['set',  'commodities',               'commodity_material',  'm',            0], #MaterialSR
 		['set',  'commodities',               'commodity_emissions', 'e',            0],
 		['set',  'commodities',               'commodity_demand',    'd',            0],
+		['set',  'commodity_supplyshare',     '',                    '',             0], #EnergySR
+		['set',  'comm_emi_MOO',              '',                    '',             0], #EmissionsMOO
 		['set',  'tech_groups',               '',                    '',             0],
 		['set',  'tech_annual',               '',                    '',             0],
 		['set',  'tech_variable',             '',                    '',             0],
 		['set',  'groups',                    '',                    '',             0],
-		['param','TechGroupWeight',           '',                    '',             2],
-		['param','MinActivityGroup',          '',                    '',             3],
-		['param','MaxActivityGroup',          '',                    '',             3],
-		['param','MinCapacityGroup',          '',                    '',             3],
-		['param','MaxCapacityGroup',          '',                    '',             3],
+		['param','TechGroupWeight',           '',                    '',             3],
+		['param','MinActivityGroup',          '',                    '',             2],
+		['param','MaxActivityGroup',          '',                    '',             2],
+		['param','MinCapacityGroup',          '',                    '',             2],
+		['param','MaxCapacityGroup',          '',                    '',             2],
 		['param','MinInputGroup',             '',                    '',             4],
 		['param','MaxInputGroup',             '',                    '',             4],
 		['param','MinOutputGroup',            '',                    '',             4],
@@ -173,7 +179,11 @@ def db_2_dat(ifile, ofile, options):
 		['param','RampUp',                    '',                    '',             2],
 		['param','RampDown',                  '',                    '',             2],
 		['param','StorageInitFrac',           '',                    '',             3],
-		['param','StorageDuration',           '',                    '',             2]]
+		['param','StorageDuration',           '',                    '',             2],
+		['param','ConcentrationIndexImport_energy','',               '',             3], #EnergySR
+		['param','TechnologySupplyRisk_material','',                 '',             3], #MaterialSR
+	    ['param','MaterialIntensity',         '',                    '',             4], #MaterialSR
+	    ['param','MaxMaterialReserve',        '',                    '',             2]] #MaterialSR
 
 	with open(ofile, 'w') as f:
 		f.write('data ;\n\n')
@@ -214,6 +224,7 @@ def db_2_dat(ifile, ofile, options):
 class TemoaConfig( object ):
 	states = (
 	('mga', 'exclusive'),
+	('moo', 'exclusive'), #MOO
 	)
 
 	tokens = (
@@ -235,7 +246,11 @@ class TemoaConfig( object ):
 		'mgaiter',
 		'path_to_data',
 		'path_to_logs',
-		'mgaweight'
+		'mgaweight',
+		'moof1', #MOO_f1
+		'moof2', #MOO f2
+		'mooc', #MOO c parameter
+		'mooncaps' #MOO number of caps
 	)
 
 	t_ANY_ignore  = '[ \t]'
@@ -250,6 +265,8 @@ class TemoaConfig( object ):
 		self.__error          = list()
 		self.__mga_todo       = queue.Queue()
 		self.__mga_done       = queue.Queue()
+		self.__moo_todo       = queue.Queue() #MOO
+		self.__moo_done       = queue.Queue() #MOO
 
 		self.file_location    = None
 		self.dot_dat          = list() # Use Kevin's name.
@@ -269,6 +286,10 @@ class TemoaConfig( object ):
 		self.mga              = None # mga slack value
 		self.mga_iter         = None
 		self.mga_weight       = None
+		self.moo_f1           = None #MOO_f1
+		self.moo_f2           = None #MOO f2
+		self.moo_c            = None #MOO c parameter
+		self.moo_ncaps        = None #MOO number of caps
 
 		# To keep consistent with Kevin's argumetn parser, will be removed in the future.
 		self.graph_format     = None
@@ -316,6 +337,12 @@ class TemoaConfig( object ):
 		msg += '{:>{}s}: {}\n'.format('MGA # of iterations', width, self.mga_iter)
 		msg += '{:>{}s}: {}\n'.format('MGA weighting method', width, self.mga_weight)
 		msg += '**NOTE: If you are performing MGA runs, navigate to the DAT file and make any modifications to the MGA sets before proceeding.'
+		msg += spacer #MOO
+		msg += '{:>{}s}: {}\n'.format('MOO f1', width, self.moo_f1)  #MOO f1
+		msg += '{:>{}s}: {}\n'.format('MOO f2', width, self.moo_f2)  #MOO f2
+		msg += '{:>{}s}: {}\n'.format('MOO c parameter', width, self.moo_c) #MOO c parameter
+		msg += '{:>{}s}: {}\n'.format('MOO # of caps', width, self.moo_ncaps) #MOO number of caps
+		msg += '**NOTE: If you are performing MOO, navigate to the DAT file and make any modifications to the MOO sets before proceeding.' #MOO
 		return msg
 
 	def t_ANY_COMMENT(self, t):
@@ -408,6 +435,32 @@ class TemoaConfig( object ):
 		t.lexer.pop_state()
 		t.lexer.level -= 1
 
+	def t_begin_moo(self, t): #MOO begin
+		r'--moo[\s\=]+\{'
+		t.lexer.push_state('moo')
+		t.lexer.level = 1
+
+	def t_moo_moof1(self, t): #MOO f1
+		r'moo_f1[\s\=]+(cost|emissions|energySR|materialSR)\b'
+		self.moo_f1 = t.value.replace('=', ' ').split()[1]
+
+	def t_moo_moof2(self, t): #MOO f2
+		r'moo_f2[\s\=]+(cost|emissions|energySR|materialSR)\b'
+		self.moo_f2 = t.value.replace('=', ' ').split()[1]
+
+	def t_moo_mooc(self, t): #MOO c parameter
+		r'moo_c[\s\=]+[\.\d]+'
+		self.moo_c = float(t.value.replace('=', ' ').split()[1])
+
+	def t_moo_mooncaps(self, t): #MOO number of caps
+		r'moo_ncaps[\s\=]+[\d]+'
+		self.moo_ncaps = int(t.value.replace('=', ' ').split()[1])
+
+	def t_moo_end(self, t): #MOO end
+		r'\}'
+		t.lexer.pop_state()
+		t.lexer.level -= 1
+
 	def t_ANY_newline(self,t):
 		r'\n+|(\r\n)+|\r+' # '\n' (In linux) = '\r\n' (In Windows) = '\r' (In Mac OS)
 		t.lexer.lineno += len(t.value)
@@ -429,6 +482,14 @@ class TemoaConfig( object ):
 			self.scenario = self.__mga_todo.get()
 			return True
 		else:
+			return False
+
+	def next_moo(self): #MOO
+		if not self.__moo_todo.empty(): # se todo non è vuoto
+			self.__moo_done.put(self.scenario) # metti in done lo scenario corrente
+			self.scenario = self.__moo_todo.get() # assegna a scenario il prossimo scenario di todo (nel config_sample)
+			return True
+		else: # se non ci sono ulteriori scenari da elaborare
 			return False
 
 	def build(self,**kwargs):
@@ -499,6 +560,10 @@ class TemoaConfig( object ):
 		if self.mga_iter:
 			for i in range(self.mga_iter):
 				self.__mga_todo.put(self.scenario + '_mga_' + str(i))
+
+		if self.moo_ncaps: #MOO se moo_ncaps è diverso da zero
+			for i in range(self.moo_ncaps):
+				self.__moo_todo.put(self.scenario + '_moo_' + str(i)) # popola todo con gli scenari
 
 		f = open(os.devnull, 'w');
 		sys.stdout = f # Suppress the original DB_to_DAT.py output

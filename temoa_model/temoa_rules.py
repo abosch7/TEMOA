@@ -204,7 +204,7 @@ throughout the period.
 """
     cap_avail = sum(
         value(M.ProcessLifeFrac[r, p, t, S_v]) * M.V_Capacity[r, t, S_v]
-        for S_v in M.processVintages[r, p, t]
+            for S_v in M.processVintages[r, p, t]
     )
 
     expr = M.V_CapacityAvailableByPeriodAndTech[r, p, t] == cap_avail
@@ -307,6 +307,20 @@ loan rates and periods.
 
 """
     return sum(PeriodCost_rule(M, p) for p in M.time_optimize)
+
+
+def TotalCost_Constraint(M): #CostMOO
+
+    expr = M.V_cost_MOO == sum(PeriodCost_rule(M, p) for p in M.time_optimize)
+
+    return expr
+
+def MaxCost_Constraint (M): #CostMOO
+
+    expr = sum(PeriodCost_rule(M, p) for p in M.time_optimize) == 137653.10*1.15
+
+    return expr
+    # return Constraint.Skip
 
 
 def PeriodCost_rule(M, p):
@@ -493,6 +507,242 @@ and not  :math:`\textbf{FOA}`
     expr = act_a * DSD[r, s, d, dem] == act_b * DSD[r, s_0, d_0, dem]
     return expr
 
+def Emissions_Constraint(M): #EmissionsMOO
+
+    expr = M.V_comm_emi_MOO == sum(Emissions_period(M, r, p) for p in M.time_optimize if p == 2050 for r in M.regions)
+
+    return expr
+
+def MaxEmi_Constraint(M): #EmissionsMOO
+
+    expr = sum(Emissions_period(M, r, p) for p in M.time_optimize if p == 2050 for r in M.regions) == 0
+
+    return expr
+    # return Constraint.Skip
+
+def Emissions_period(M, r, p): #EmissionsMOO
+
+    if r == 'global':
+      regions = M.regions
+    elif '+' in r:
+      regions = r.split('+')
+    else:
+      regions = [r]
+
+    actual_emissions = sum(
+        M.V_FlowOut[reg, p, S_s, S_d, S_i, S_t, S_v, S_o]
+        * M.EmissionActivity[reg, S_e, S_i, S_t, S_v, S_o]
+        for reg in regions
+        for S_e in M.comm_emi_MOO
+        for tmp_r, tmp_e, S_i, S_t, S_v, S_o in M.EmissionActivity.sparse_iterkeys()
+        if tmp_e == S_e and tmp_r == reg and S_t not in M.tech_annual
+        # EmissionsActivity not indexed by p, so make sure (r,p,t,v) combos valid
+        if (reg, p, S_t, S_v) in M.processInputs.keys()
+        for S_s in M.time_season
+        for S_d in M.time_of_day
+    )
+
+    actual_emissions_flex = sum(
+        M.V_Flex[reg, p, S_s, S_d, S_i, S_t, S_v, S_o]
+        * M.EmissionActivity[reg, S_e, S_i, S_t, S_v, S_o]
+        for reg in regions
+        for S_e in M.comm_emi_MOO
+        for tmp_r, tmp_e, S_i, S_t, S_v, S_o in M.EmissionActivity.sparse_iterkeys()
+        if
+        tmp_e == S_e and tmp_r == reg and S_t not in M.tech_annual and S_t in M.tech_flex and S_o in M.flex_commodities
+        # EmissionsActivity not indexed by p, so make sure (r,p,t,v) combos valid
+        if (reg, p, S_t, S_v) in M.processInputs.keys()
+        for S_s in M.time_season
+        for S_d in M.time_of_day
+    )
+
+    actual_emissions_curtail = sum(
+        M.V_Curtailment[reg, p, S_s, S_d, S_i, S_t, S_v, S_o]
+        * M.EmissionActivity[reg, S_e, S_i, S_t, S_v, S_o]
+        for reg in regions
+        for S_e in M.comm_emi_MOO
+        for tmp_r, tmp_e, S_i, S_t, S_v, S_o in M.EmissionActivity.sparse_iterkeys()
+        if tmp_e == S_e and tmp_r == reg and S_t not in M.tech_annual and S_t in M.tech_curtailment
+        # EmissionsActivity not indexed by p, so make sure (r,p,t,v) combos valid
+        if (reg, p, S_t, S_v) in M.processInputs.keys()
+        for S_s in M.time_season
+        for S_d in M.time_of_day
+    )
+
+    actual_emissions_annual = sum(
+        M.V_FlowOutAnnual[reg, p, S_i, S_t, S_v, S_o]
+        * M.EmissionActivity[reg, S_e, S_i, S_t, S_v, S_o]
+        for reg in regions
+        for S_e in M.comm_emi_MOO
+        for tmp_r, tmp_e, S_i, S_t, S_v, S_o in M.EmissionActivity.sparse_iterkeys()
+        if tmp_e == S_e and tmp_r == reg and S_t in M.tech_annual
+        # EmissionsActivity not indexed by p, so make sure (r,p,t,v) combos valid
+        if (reg, p, S_t, S_v) in M.processInputs.keys()
+    )
+
+    actual_emissions_flex_annual = sum(
+        M.V_FlexAnnual[reg, p, S_i, S_t, S_v, S_o]
+        * M.EmissionActivity[reg, S_e, S_i, S_t, S_v, S_o]
+        for reg in regions
+        for S_e in M.comm_emi_MOO
+        for tmp_r, tmp_e, S_i, S_t, S_v, S_o in M.EmissionActivity.sparse_iterkeys()
+        if tmp_e == S_e and tmp_r == reg and S_t in M.tech_annual and S_t in M.tech_flex and S_o in M.flex_commodities
+        # EmissionsActivity not indexed by p, so make sure (r,p,t,v) combos valid
+        if (reg, p, S_t, S_v) in M.processInputs.keys()
+    )
+
+    emissions_period = actual_emissions + actual_emissions_annual + actual_emissions_flex + actual_emissions_curtail + actual_emissions_flex_annual
+
+    return emissions_period
+
+def EnergySupplyRisk_Constraint(M): #EnergySR
+
+    expr = M.V_EnergySupplyRisk == sum(EnergySupplyRisk_period(M, p) for p in M.time_optimize)
+
+    return expr
+
+def EnergySupplyRisk_period(M, p): #EnergySR
+
+    energy_SR_period = sum(
+        value(M.ConcentrationIndexImport_energy[r, S_c, p]) * M.V_ImportShare[r, p, S_c]
+        for r in M.regions
+        for t in M.tech_all if t in M.tech_imports
+        for v in M.processVintages[r, p, t]
+        for S_c in M.processOutputs[r, p, t, v]
+        )
+
+    return energy_SR_period
+
+def ImportShare_Constraint(M, r, p, c): #EnergySR
+
+    if c in M.commodity_demand:
+        return Constraint.Skip
+
+
+    import_e = sum(
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, c]
+        for S_t, S_v in M.commodityUStreamProcess[r, p, c] if S_t in M.tech_imports and S_t not in M.tech_annual
+        for S_i in M.ProcessInputsByOutput[r, p, S_t, S_v, c]
+        for s in M.time_season
+        for d in M.time_of_day
+    )
+    export_e = sum(
+        M.V_FlowOut[r, p, s, d, c, S_t, S_v, S_o] / value(M.Efficiency[r, c, S_t, S_v, S_o])
+        for S_t, S_v in M.commodityDStreamProcess[r, p, c] if S_t in M.tech_exports and S_t not in M.tech_annual
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, c]
+        for s in M.time_season
+        for d in M.time_of_day
+    )
+
+    net_import_e = import_e - export_e
+
+    expr = M.V_ImportShare[r, p, c] == net_import_e / 1589 # SR_E_1 (ELC_DEM)
+
+    return expr
+
+def EnergySupply_Constraint(M, r, p): #EnergySR
+
+    supply_tot = sum(
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o]
+        for S_t in M.tech_all if S_t not in M.tech_annual
+        for S_v in M.processVintages[r, p, S_t]
+        for S_i in M.processInputs[r, p, S_t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i] if S_o in M.commodity_supplyshare
+        for s in M.time_season
+        for d in M.time_of_day
+    )
+
+    export_tot = sum(
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
+        for S_t in M.tech_all if S_t not in M.tech_annual
+        for S_v in M.processVintages[r, p, S_t]
+        for S_o in M.processOutputs[r, p, S_t, S_v] if S_o in M.commodity_demand
+        for S_i in M.ProcessInputsByOutput[r, p, S_t, S_v, S_o] if S_i in M.commodity_supplyshare
+        for s in M.time_season
+        for d in M.time_of_day
+    )
+
+    energy_supply = supply_tot - export_tot
+
+    return energy_supply
+
+def MaterialSupplyRisk_Constraint(M): #MaterialSR
+
+    expr = M.V_MaterialSupplyRisk == sum(MaterialSupplyRisk_period(M, p) for p in M.time_optimize)
+
+    return expr
+
+def MaterialSupplyRisk_period(M, p): #MaterialSR
+
+    material_SR_period = sum(
+        M.V_Capacity[r, S_t, S_v] * value(M.TechnologySupplyRisk_material[r, S_t, S_v])
+        for r, S_t, S_v in M.TechnologySupplyRisk_material.sparse_iterkeys()
+        #for r, S_t, S_v in M.CostInvest.sparse_iterkeys()
+        if S_v == p
+    )
+
+    return material_SR_period
+
+def MaterialConsumption_Constraint(M, r, i, v): #MaterialSR
+
+    if i not in M.commodity_material:
+        return Constraint.Skip
+
+    expr = M.V_MatCons[r, i, v] == sum(
+        M.V_Capacity[r, S_t, S_v] * value( M.MaterialIntensity[r, i, S_t, S_v] )
+        for r, S_t, S_v in M.CostInvest.sparse_iterkeys()
+        if S_v == v
+    )
+
+    return expr
+
+def MaterialBalance_Constraint(M, r, p, c): #MaterialSR
+
+    if c not in M.commodity_material:
+        return Constraint.Skip
+
+    mat_cons = M.V_MatCons[r, c, p]
+
+    mat_prod = sum(
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, c]
+        for S_t, S_v in M.commodityUStreamProcess[r, p, c]
+        for S_i in M.ProcessInputsByOutput[r, p, S_t, S_v, c]
+        for d in M.time_of_day
+        for s in M.time_season
+    )
+
+    expr = mat_prod == mat_cons
+
+    return expr
+
+def MaxMaterialReserve_Constraint(M, r, t): #MaterialSR
+
+    max_reserve = value(M.MaxMaterialReserve[r, t])
+
+    try:
+      mat_supply_tot = sum(
+          M.V_FlowOut[r, p, s, d, S_i, t, S_v, S_o]
+          for p in M.time_optimize
+          if (r, p, t) in M.processVintages.keys()
+          for S_v in M.processVintages[r, p, t]
+          for S_i in M.processInputs[r, p, t, S_v]
+          for S_o in M.ProcessOutputsByInput[r, p, t, S_v, S_i]
+          for s in M.time_season
+          for d in M.time_of_day
+      )
+    except:
+      mat_supply_tot = sum(
+          M.V_FlowOutAnnual[r, p, S_i, t, S_v, S_o]
+          for p in M.time_optimize
+          if (r, p, t) in M.processVintages.keys()
+          for S_v in M.processVintages[r, p, t]
+          for S_i in M.processInputs[r, p, t, S_v]
+          for S_o in M.ProcessOutputsByInput[r, p, t, S_v, S_i]
+      )
+
+    expr = mat_supply_tot <= max_reserve
+
+    return expr
 
 def CommodityBalance_Constraint(M, r, p, s, d, c):
     r"""
@@ -1768,7 +2018,7 @@ set.
     return expr
 
 
-def MinActivityGroup_Constraint(M, r, p, g):
+def MinActivityGroup_Constraint(M, p, g):
     r"""
 
 The MinActivityGroup constraint sets a minimum activity limit for a user-defined
@@ -1788,16 +2038,10 @@ share that can count towards the constraint.
 where :math:`g` represents the assigned technology group and :math:`MGT_r`
 refers to the :code:`MinActivityGroup` parameter.
 """
-    if r == 'global':
-      reg = M.regions
-    elif '+' in r:
-      reg = r.split('+')
-    else:
-      reg = [r]
 
     activity_p = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
-        for r in reg
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
+        for r in M.RegionalIndices
         for S_t in M.tech_groups if (S_t not in M.tech_annual) and ((r, p, S_t) in M.processVintages.keys())
         for S_v in M.processVintages[r, p, S_t]
         for S_i in M.processInputs[r, p, S_t, S_v]
@@ -1807,8 +2051,8 @@ refers to the :code:`MinActivityGroup` parameter.
     )
 
     activity_p_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
-        for r in reg
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
+        for r in M.RegionalIndices
         for S_t in M.tech_groups if (S_t in M.tech_annual) and ((r, p, S_t) in M.processVintages.keys())
         for S_v in M.processVintages[r, p, S_t]
         for S_i in M.processInputs[r, p, S_t, S_v]
@@ -1816,12 +2060,12 @@ refers to the :code:`MinActivityGroup` parameter.
     )
 
 
-    min_act = value(M.MinActivityGroup[r, p, g])
+    min_act = value(M.MinActivityGroup[p, g])
     expr = activity_p + activity_p_annual >= min_act
     return expr
 
 
-def MaxActivityGroup_Constraint(M, r, p, g):
+def MaxActivityGroup_Constraint(M, p, g):
     r"""
 
 The MaxActivityGroup constraint sets a maximum activity limit for a user-defined
@@ -1841,16 +2085,10 @@ towards the constraint.
 where :math:`g` represents the assigned technology group and :math:`MGGL`
 refers to the :code:` MaxActivityGroup` parameter.
 """
-    if r == 'global':
-      reg = M.regions
-    elif '+' in r:
-      reg = r.split('+')
-    else:
-      reg = [r]
 
     activity_p = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
-        for r in reg
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
+        for r in M.RegionalIndices
         for S_t in M.tech_groups if (S_t not in M.tech_annual) and ((r, p, S_t) in M.processVintages.keys())
         for S_v in M.processVintages[r, p, S_t]
         for S_i in M.processInputs[r, p, S_t, S_v]
@@ -1860,57 +2098,43 @@ refers to the :code:` MaxActivityGroup` parameter.
     )
 
     activity_p_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
-        for r in reg
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
+        for r in M.RegionalIndices
         for S_t in M.tech_groups if (S_t in M.tech_annual) and ((r, p, S_t) in M.processVintages.keys())
         for S_v in M.processVintages[r, p, S_t]
         for S_i in M.processInputs[r, p, S_t, S_v]
         for S_o in M.ProcessOutputsByInput[r, p, S_t, S_v, S_i]
     )
 
-    max_act = value(M.MaxActivityGroup[r, p, g])
+    max_act = value(M.MaxActivityGroup[p, g])
     expr = activity_p + activity_p_annual <= max_act
     return expr
 
 
-def MinCapacityGroup_Constraint(M, r, p, g):
+def MinCapacityGroup_Constraint(M, p, g):
     r"""
 Similar to the :code:`MinCapacity` constraint, but works on a group of technologies.
 
 """
-    if r == 'global':
-      reg = M.regions
-    elif '+' in r:
-      reg = r.split('+')
-    else:
-      reg = [r]
-
-    min_cap = value(M.MinCapacityGroup[r, p, g])
+    min_cap = value(M.MinCapacityGroup[p, g])
     aggcap = sum(
-        M.V_CapacityAvailableByPeriodAndTech[r, p, S_t] * M.TechGroupWeight[S_t, g]
-        for r in reg
+        M.V_CapacityAvailableByPeriodAndTech[r, p, S_t] * M.TechGroupWeight[r, S_t, g]
+        for r in M.RegionalIndices
         for S_t in M.tech_groups if (r, p, S_t) in M.processVintages.keys()
     )
     expr = aggcap >= min_cap
     return expr
 
 
-def MaxCapacityGroup_Constraint(M, r, p, g):
+def MaxCapacityGroup_Constraint(M, p, g):
     r"""
 Similar to the :code:`MaxCapacity` constraint, but works on a group of technologies.
 
 """
-    if r == 'global':
-      reg = M.regions
-    elif '+' in r:
-      reg = r.split('+')
-    else:
-      reg = [r]
-    
-    max_cap = value(M.MaxCapacityGroup[r, p, g])
+    max_cap = value(M.MaxCapacityGroup[p, g])
     aggcap = sum(
-        M.V_CapacityAvailableByPeriodAndTech[r, p, S_t] * M.TechGroupWeight[S_t, g]
-        for r in reg
+        M.V_CapacityAvailableByPeriodAndTech[r, p, S_t] * M.TechGroupWeight[r, S_t, g]
+        for r in M.RegionalIndices
         for S_t in M.tech_groups if (r, p, S_t) in M.processVintages.keys()
     )
     expr = aggcap <= max_cap
@@ -1924,17 +2148,10 @@ Allows users to specify minimum shares of commodity inputs to a group of technol
 These shares can vary by model time period.
 
 """
-    if r == 'global':
-      reg = M.regions
-    elif '+' in r:
-      reg = r.split('+')
-    else:
-      reg = [r]
-    
     inp = sum(
-        M.V_FlowOut[r, p, s, d, i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
+        M.V_FlowOut[r, p, s, d, i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -1945,9 +2162,9 @@ These shares can vary by model time period.
     )
 
     inp_annual = sum(
-        M.V_FlowOutAnnual[r, p, i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
+        M.V_FlowOutAnnual[r, p, i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -1956,9 +2173,9 @@ These shares can vary by model time period.
     )
 
     total_inp = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -1969,9 +2186,9 @@ These shares can vary by model time period.
     )
 
     total_inp_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -1991,17 +2208,10 @@ Allows users to specify maximum shares of commodity inputs to a group of technol
 These shares can vary by model time period.
 
 """
-    if r == 'global':
-      reg = M.regions
-    elif '+' in r:
-      reg = r.split('+')
-    else:
-      reg = [r]
-    
     inp = sum(
-        M.V_FlowOut[r, p, s, d, i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
+        M.V_FlowOut[r, p, s, d, i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -2012,9 +2222,9 @@ These shares can vary by model time period.
     )
 
     inp_annual = sum(
-        M.V_FlowOutAnnual[r, p, i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
+        M.V_FlowOutAnnual[r, p, i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -2023,9 +2233,9 @@ These shares can vary by model time period.
     )
 
     total_inp = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -2036,9 +2246,9 @@ These shares can vary by model time period.
     )
 
     total_inp_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g] / value(M.Efficiency[r, S_i, S_t, S_v, S_o])
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -2058,17 +2268,10 @@ Allows users to specify minimum shares of commodity outputs to a group of techno
 These shares can vary by model time period.
 
 """
-    if r == 'global':
-      reg = M.regions
-    elif '+' in r:
-      reg = r.split('+')
-    else:
-      reg = [r]
-    
     outp = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, o] * M.TechGroupWeight[S_t, g]
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, o] * M.TechGroupWeight[r, S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -2079,9 +2282,9 @@ These shares can vary by model time period.
     )
 
     outp_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, o] * M.TechGroupWeight[S_t, g]
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, o] * M.TechGroupWeight[r, S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -2090,9 +2293,9 @@ These shares can vary by model time period.
     )
 
     total_outp = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -2103,9 +2306,9 @@ These shares can vary by model time period.
     )
 
     total_outp_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -2125,17 +2328,10 @@ Allows users to specify maximum shares of commodity outputs to a group of techno
 These shares can vary by model time period.
 
 """
-    if r == 'global':
-      reg = M.regions
-    elif '+' in r:
-      reg = r.split('+')
-    else:
-      reg = [r]
-    
     outp = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, o] * M.TechGroupWeight[S_t, g]
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, o] * M.TechGroupWeight[r, S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -2146,9 +2342,9 @@ These shares can vary by model time period.
     )
 
     outp_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, o] * M.TechGroupWeight[S_t, g]
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, o] * M.TechGroupWeight[r, S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -2157,9 +2353,9 @@ These shares can vary by model time period.
     )
 
     total_outp = sum(
-        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t not in M.tech_annual
@@ -2170,9 +2366,9 @@ These shares can vary by model time period.
     )
 
     total_outp_annual = sum(
-        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[S_t, g]
+        M.V_FlowOutAnnual[r, p, S_i, S_t, S_v, S_o] * M.TechGroupWeight[r, S_t, g]
         for S_r, S_p, S_t, S_v in M.activeActivity_rptv
-        if S_r in reg
+        if S_r == r
         if S_p == p
         if S_t in M.tech_groups
         if S_t in M.tech_annual
@@ -2199,21 +2395,8 @@ tech, not tech and vintage.
 
    \forall \{r, p, t\} \in \Theta_{\text{MaxCapacity}}
 """
-    if r == 'global':
-      reg = M.regions
-    elif '+' in r:
-      reg = r.split('+')
-    else:
-      reg = [r]
-
-    capacity_rpt = sum(
-        M.V_CapacityAvailableByPeriodAndTech[r, p, t]
-        for r in reg
-        if (r,p,t) in M.V_CapacityAvailableByPeriodAndTech
-    )
-
     max_cap = value(M.MaxCapacity[r, p, t])
-    expr = capacity_rpt <= max_cap
+    expr = M.V_CapacityAvailableByPeriodAndTech[r, p, t] <= max_cap
     return expr
 
 
@@ -2271,21 +2454,8 @@ tech, not tech and vintage.
 
    \forall \{r, p, t\} \in \Theta_{\text{MinCapacity}}
 """
-    if r == 'global':
-      reg = M.regions
-    elif '+' in r:
-      reg = r.split('+')
-    else:
-      reg = [r]
-
-    capacity_rpt = sum(
-        M.V_CapacityAvailableByPeriodAndTech[r, p, t]
-        for r in reg
-        if (r,p,t) in M.V_CapacityAvailableByPeriodAndTech
-    )
-
     min_cap = value(M.MinCapacity[r, p, t])
-    expr = capacity_rpt >= min_cap
+    expr = M.V_CapacityAvailableByPeriodAndTech[r, p, t] >= min_cap
     return expr
 
 

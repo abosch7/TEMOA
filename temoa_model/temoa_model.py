@@ -66,6 +66,9 @@ def temoa_create_model(name="Temoa"):
     M.tech_resource = Set()
     M.tech_production = Set()
     M.tech_all = M.tech_resource | M.tech_production
+    M.tech_imports = Set(within=M.tech_all) #EnergySR
+    M.tech_exports = Set(within=M.tech_all) #EnergySR
+    M.tech_domestic = Set(within=M.tech_all) #EnergySR
     M.tech_baseload = Set(within=M.tech_all)
     M.tech_storage = Set(within=M.tech_all)
     M.tech_reserve = Set(within=M.tech_all)
@@ -83,8 +86,11 @@ def temoa_create_model(name="Temoa"):
     # Define commodity-related sets
     M.commodity_demand = Set()
     M.commodity_emissions = Set()
+    M.comm_emi_MOO = Set(within=M.commodity_emissions) #EmissionsMOO
     M.commodity_physical = Set()
-    M.commodity_carrier = M.commodity_physical | M.commodity_demand
+    M.commodity_supplyshare = Set(within=M.commodity_physical) #EnergySR
+    M.commodity_material = Set()  #MaterialSR
+    M.commodity_carrier = M.commodity_physical | M.commodity_demand | M.commodity_material #MaterialSR
     M.commodity_all = M.commodity_carrier | M.commodity_emissions
 
     # Define sets for MGA weighting
@@ -209,25 +215,26 @@ def temoa_create_model(name="Temoa"):
     )
 
     # Define parameters associated with user-defined constraints
+    M.RegionalGlobalIndices = Set(initialize=RegionalGlobalInitializedIndices)
     M.MinCapacity = Param(M.RegionalIndices, M.time_optimize, M.tech_all)
     M.MaxCapacity = Param(M.RegionalIndices, M.time_optimize, M.tech_all)
     M.MaxResource = Param(M.RegionalIndices, M.tech_all)
-    M.MaxActivity = Param(M.RegionalIndices, M.time_optimize, M.tech_all)
-    M.MinActivity = Param(M.RegionalIndices, M.time_optimize, M.tech_all)
+    M.MaxActivity = Param(M.RegionalGlobalIndices, M.time_optimize, M.tech_all)
+    M.MinActivity = Param(M.RegionalGlobalIndices, M.time_optimize, M.tech_all)
     M.GrowthRateMax = Param(M.RegionalIndices, M.tech_all)
     M.GrowthRateSeed = Param(M.RegionalIndices, M.tech_all)
-    M.EmissionLimit = Param(M.RegionalIndices, M.time_optimize, M.commodity_emissions)
+    M.EmissionLimit = Param(M.RegionalGlobalIndices, M.time_optimize, M.commodity_emissions)
     M.EmissionActivity_reitvo = Set(dimen=6, initialize=EmissionActivityIndices)
     M.EmissionActivity = Param(M.EmissionActivity_reitvo, default=0)
-    M.TechGroupWeight = Param(M.tech_groups, M.groups, default=0)
-    M.MinActivityGroup = Param(M.RegionalIndices, M.time_optimize, M.groups)
-    M.MaxActivityGroup = Param(M.RegionalIndices, M.time_optimize, M.groups)
-    M.MinCapacityGroup = Param(M.RegionalIndices, M.time_optimize, M.groups)
-    M.MaxCapacityGroup = Param(M.RegionalIndices, M.time_optimize, M.groups)
-    M.MinInputGroup = Param(M.RegionalIndices, M.time_optimize, M.commodity_physical, M.groups)
-    M.MaxInputGroup = Param(M.RegionalIndices, M.time_optimize, M.commodity_physical, M.groups)
-    M.MinOutputGroup = Param(M.RegionalIndices, M.time_optimize, M.commodity_physical, M.groups)
-    M.MaxOutputGroup = Param(M.RegionalIndices, M.time_optimize, M.commodity_physical, M.groups)
+    M.TechGroupWeight = Param(M.RegionalIndices, M.tech_groups, M.groups, default=0)
+    M.MinActivityGroup = Param(M.time_optimize, M.groups)
+    M.MaxActivityGroup = Param(M.time_optimize, M.groups)
+    M.MinCapacityGroup = Param(M.time_optimize, M.groups)
+    M.MaxCapacityGroup = Param(M.time_optimize, M.groups)
+    M.MinInputGroup = Param(M.regions, M.time_optimize, M.commodity_physical, M.groups)
+    M.MaxInputGroup = Param(M.regions, M.time_optimize, M.commodity_physical, M.groups)
+    M.MinOutputGroup = Param(M.regions, M.time_optimize, M.commodity_physical, M.groups)
+    M.MaxOutputGroup = Param(M.regions, M.time_optimize, M.commodity_physical, M.groups)
     M.LinkedTechs = Param(M.RegionalIndices, M.tech_all, M.commodity_emissions)
 
     # Define parameters associated with electric sector operation
@@ -243,6 +250,14 @@ def temoa_create_model(name="Temoa"):
     M.StorageInitFrac = Param(M.StorageInit_rtv)
 
     M.MyopicBaseyear = Param(default=0, mutable=True)
+
+    # Define parameters associated with energy and material supply risk assessment
+    #EnergySR
+    M.ConcentrationIndexImport_energy = Param(M.RegionalIndices, M.commodity_physical, M.time_optimize, default=0) #HHI_e_import
+    #MaterialSR
+    M.TechnologySupplyRisk_material = Param(M.RegionalIndices, M.tech_all, M.vintage_optimize, default=0)
+    M.MaterialIntensity = Param(M.RegionalIndices, M.commodity_material, M.tech_all, M.vintage_optimize, default=0)
+    M.MaxMaterialReserve = Param(M.RegionalIndices, M.tech_all)
 
     # ---------------------------------------------------------------
     # Define Decision Variables.
@@ -283,6 +298,17 @@ def temoa_create_model(name="Temoa"):
     M.V_CapacityAvailableByPeriodAndTech = Var(
         M.CapacityAvailableVar_rpt, domain=NonNegativeReals
     )
+
+    #CostMOO
+    M.V_cost_MOO = Var(domain=NonNegativeReals)
+    #EmissionsMOO
+    M.V_comm_emi_MOO = Var(domain=NonNegativeReals)
+    #EnergySR
+    M.V_ImportShare = Var(M.RegionalIndices, M.time_optimize, M.commodity_physical, domain=NonNegativeReals, initialize=0)
+    M.V_EnergySupplyRisk = Var(domain=NonNegativeReals)
+    #MaterialSR
+    M.V_MaterialSupplyRisk = Var(domain=NonNegativeReals)
+    M.V_MatCons = Var(M.RegionalIndices, M.commodity_material, M.vintage_optimize, domain=NonNegativeReals, initialize=0)
 
     # ---------------------------------------------------------------
     # Declare the Objective Function.
@@ -343,7 +369,54 @@ def temoa_create_model(name="Temoa"):
     )
     M.CommodityBalanceAnnualConstraint = Constraint(
         M.CommodityBalanceAnnualConstraint_rpc, rule=CommodityBalanceAnnual_Constraint
-    )    
+    )
+
+    #CostMOO
+    M.TotalCostConstraint = Constraint(
+        M.regions, rule=TotalCost_Constraint
+    )
+    M.MaxCostConstraint = Constraint(
+        M.regions, rule=MaxCost_Constraint
+    )
+
+    #EmissionsMOO
+    M.EmissionsConstraint = Constraint(
+        M.regions, rule=Emissions_Constraint
+    )
+    M.MaxEmiConstraint = Constraint(
+        M.regions, rule=MaxEmi_Constraint
+    )
+
+    #EnergySR
+    M.ImportShareConstraint_rpc = Set(
+        dimen=3, initialize=ImportShareConstraintIndices
+    )
+    M.ImportShareConstraint = Constraint(
+        M.ImportShareConstraint_rpc, rule=ImportShare_Constraint
+    )
+    M.EnergySupplyRiskConstraint = Constraint(
+        M.regions, rule=EnergySupplyRisk_Constraint
+    )
+
+    #MaterialSR
+    M.MaterialSupplyRiskConstraint = Constraint(
+        M.regions, rule=MaterialSupplyRisk_Constraint
+    )
+    M.MaterialConsumptionConstraint = Constraint(
+        M.regions, M.commodity_material, M.vintage_optimize, rule=MaterialConsumption_Constraint
+    )
+    M.MaterialBalanceConstraint = Constraint(
+        M.regions, M.time_optimize, M.commodity_material, rule=MaterialBalance_Constraint
+    )
+    # M.MaxMaterialReserveConstraint = Constraint(
+    #     M.regions, M.tech_all, rule=MaxMaterialReserve_Constraint
+    # )
+    M.MaxMaterialReserveConstraint_rt = Set(
+        dimen=2, initialize=lambda M: M.MaxMaterialReserve.sparse_iterkeys()
+    )
+    M.MaxMaterialReserveConstraint = Constraint(
+        M.MaxMaterialReserveConstraint_rt, rule=MaxMaterialReserve_Constraint
+    )
 
     M.ResourceConstraint_rpr = Set(
         dimen=3, initialize=lambda M: M.ResourceBound.sparse_iterkeys()
@@ -454,32 +527,32 @@ def temoa_create_model(name="Temoa"):
         M.MinActivityConstraint_rpt, rule=MinActivity_Constraint
     )
 
-    M.MinActivityGroup_rpg = Set(
-        dimen=3, initialize=lambda M: M.MinActivityGroup.sparse_iterkeys()
+    M.MinActivityGroup_pg = Set(
+        dimen=2, initialize=lambda M: M.MinActivityGroup.sparse_iterkeys()
     )
     M.MinActivityGroupConstraint = Constraint(
-        M.MinActivityGroup_rpg, rule=MinActivityGroup_Constraint
+        M.MinActivityGroup_pg, rule=MinActivityGroup_Constraint
     )
 
-    M.MaxActivityGroup_rpg = Set(
-        dimen=3, initialize=lambda M: M.MaxActivityGroup.sparse_iterkeys()
+    M.MaxActivityGroup_pg = Set(
+        dimen=2, initialize=lambda M: M.MaxActivityGroup.sparse_iterkeys()
     )
     M.MaxActivityGroupConstraint = Constraint(
-        M.MaxActivityGroup_rpg, rule=MaxActivityGroup_Constraint
+        M.MaxActivityGroup_pg, rule=MaxActivityGroup_Constraint
     )
 
-    M.MinCapacityGroupConstraint_rpg = Set(
-        dimen=3, initialize=lambda M: M.MinCapacityGroup.sparse_iterkeys()
+    M.MinCapacityGroupConstraint_pg = Set(
+        dimen=2, initialize=lambda M: M.MinCapacityGroup.sparse_iterkeys()
     )
     M.MinCapacityGroupConstraint = Constraint(
-        M.MinCapacityGroupConstraint_rpg, rule=MinCapacityGroup_Constraint
+        M.MinCapacityGroupConstraint_pg, rule=MinCapacityGroup_Constraint
     )
 
-    M.MaxCapacityGroupConstraint_rpg = Set(
-        dimen=3, initialize=lambda M: M.MaxCapacityGroup.sparse_iterkeys()
+    M.MaxCapacityGroupConstraint_pg = Set(
+        dimen=2, initialize=lambda M: M.MaxCapacityGroup.sparse_iterkeys()
     )
     M.MaxCapacityGroupConstraint = Constraint(
-        M.MaxCapacityGroupConstraint_rpg, rule=MaxCapacityGroup_Constraint
+        M.MaxCapacityGroupConstraint_pg, rule=MaxCapacityGroup_Constraint
     )
 
     M.MinInputGroup_Constraint_rpig = Set(

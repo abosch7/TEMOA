@@ -511,7 +511,6 @@ def CreateRegionalIndices ( M ):
 				regional_indices.add(r_i)
 			else:
 				regional_indices.add(r_i+"-"+r_j)
-	regional_indices.add('global')
 	return regional_indices
 
 
@@ -801,7 +800,9 @@ def CapacityFactorIndices(M):
 	indices = set(
 		(r, t, v)
 
-		for r, i, t, v, o in M.Efficiency.sparse_iterkeys()
+		for r in M.regions
+		for t in M.tech_all
+		for v in M.vintage_all
 	)
 
 	return indices
@@ -840,6 +841,19 @@ def CostInvestIndices ( M ):
 	)
 
 	return indices
+
+def RegionalGlobalInitializedIndices ( M ):
+	from itertools import permutations
+	indices = set()
+	for n in range(1,len(M.regions)+1):
+		regional_perms = permutations(M.regions,n)
+		for i in regional_perms:
+			indices.add("+".join(i))
+	indices.add('global')
+	indices = indices.union(M.RegionalIndices)
+
+	return indices
+
 
 def EmissionActivityIndices ( M ):
 	indices = set(
@@ -1072,6 +1086,25 @@ def CommodityBalanceConstraintIndices ( M ):
 	  for s in M.time_season
 	  for d in M.time_of_day
 	)
+
+	return indices
+
+#EnergySR
+def ImportShareConstraintIndices ( M ):
+	# Generate indices only for those commodities that are produced by
+	# technologies with varying output at the time slice level.
+	period_commodity_with_up = set( M.commodityUStreamProcess.keys() )
+	period_commodity_with_dn = set( M.commodityDStreamProcess.keys() )
+	period_commodity = period_commodity_with_up.intersection( period_commodity_with_dn )
+	indices = set(
+	  (r, p, o)
+
+	  for r, p, o in period_commodity #r in this line includes interregional transfer combinations (not needed).
+	  if r in M.regions # this line ensures only the regions are included.
+	  for t, v in M.commodityUStreamProcess[ r, p, o ]
+	  if (r, t) not in M.tech_storage
+	  if t in M.tech_imports or t in M.tech_exports or t in M.tech_domestic # Needed to ensure to have consistent indices between ImportShare_Constraint
+	) # and V_ImportShare, as well as for ImportReliance
 
 	return indices
 
