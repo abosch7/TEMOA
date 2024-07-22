@@ -20,7 +20,7 @@ received this license file.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from pyomo.environ import *
-from temoa_rules import PeriodCost_rule, Emissions_period, EnergySupplyRisk_period, MaterialSupplyRisk_period
+from temoa_rules import Costs_moo, Emissions_moo, EnergySupplyRisk_moo, MaterialSupplyRisk_moo
 import math
 
 # (a) Determine the Pareto boundaries
@@ -28,25 +28,25 @@ import math
 def f1lowest_rule( M, moo_f1 ):
 
 	if moo_f1 == 'cost':
-		return sum(PeriodCost_rule(M, p) for p in M.time_optimize)
+		return sum(Costs_moo(M, r, p) for p in M.time_optimize for r in M.regions)
 	elif moo_f1 == 'emissions':
-		return sum(Emissions_period( M, r, p ) for p in M.time_optimize for r in M.regions)
+		return sum(Emissions_moo( M, r, p ) for p in M.time_optimize for r in M.regions)
 	elif moo_f1 == 'energySR':
-		return sum(EnergySupplyRisk_period( M, p ) for p in M.time_optimize)
+		return sum(EnergySupplyRisk_moo( M, r, p ) for p in M.time_optimize for r in M.regions)
 	elif moo_f1 == 'materialSR':
-		return sum(MaterialSupplyRisk_period( M, p ) for p in M.time_optimize)
+		return sum(MaterialSupplyRisk_moo( M, r, p ) for p in M.time_optimize for r in M.regions)
 
 # (a.2) f2_lowest
 def f2lowest_rule( M, moo_f2 ):
 
 	if moo_f2 == 'cost':
-		return sum(PeriodCost_rule(M, p) for p in M.time_optimize)
+		return sum(Costs_moo(M, r, p) for p in M.time_optimize for r in M.regions)
 	elif moo_f2 == 'emissions':
-		return sum(Emissions_period( M, r, p ) for p in M.time_optimize if p == 2050 for r in M.regions)
+		return sum(Emissions_moo( M, r, p ) for p in M.time_optimize if p == 2050 for r in M.regions)
 	elif moo_f2 == 'energySR':
-		return sum(EnergySupplyRisk_period( M, p ) for p in M.time_optimize)
+		return sum(EnergySupplyRisk_moo( M, r, p ) for p in M.time_optimize for r in M.regions)
 	elif moo_f2 == 'materialSR':
-		return sum(MaterialSupplyRisk_period( M, p ) for p in M.time_optimize)
+		return sum(MaterialSupplyRisk_moo( M, r, p ) for p in M.time_optimize for r in M.regions)
 
 # (a.3) f2_highest
 def f2highest_rule ( M, moo_f1, f1_lowest ):

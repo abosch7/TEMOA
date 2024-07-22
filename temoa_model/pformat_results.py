@@ -254,34 +254,34 @@ def pformat_results ( pyomo_instance, pyomo_result, options ):
 			svars['V_slack'][r] = val
 
 	#CostMOO
-	for r in m.V_cost_MOO:
-		val = value (m.V_cost_MOO[r])
+	for r, p in m.V_Costs_MOO:
+		val = value (m.V_Costs_MOO[r, p])
 		if abs(val) < epsilon: continue
-		svars['V_cost_MOO'][r] = val
+		svars['V_Costs_MOO'][r, p] = val
 
 	#EmissionsMOO
-	for r in m.V_comm_emi_MOO:
-		val = value (m.V_comm_emi_MOO[r])
+	for r, p in m.V_Emissions_MOO:
+		val = value (m.V_Emissions_MOO[r, p])
 		if abs(val) < epsilon: continue
-		svars['V_comm_emi_MOO'][r] = val
+		svars['V_Emissions_MOO'][r, p] = val
 
 	#EnergySR
-	for r in m.V_EnergySupplyRisk:
-		val = value ( m.V_EnergySupplyRisk[r] )
+	for r, p in m.V_EnergySupplyRisk:
+		val = value ( m.V_EnergySupplyRisk[r, p] )
 		if abs(val) < epsilon: continue
-		svars['V_EnergySupplyRisk'][r] = val
+		svars['V_EnergySupplyRisk'][r, p] = val
 
 	#MaterialSR
-	for r in m.V_MaterialSupplyRisk:
-		val = value ( m.V_MaterialSupplyRisk[r] )
+	for r, p in m.V_MaterialSupplyRisk:
+		val = value ( m.V_MaterialSupplyRisk[r, p] )
 		if abs(val) < epsilon: continue
-		svars['V_MaterialSupplyRisk'][r] = val
+		svars['V_MaterialSupplyRisk'][r, p] = val
 
 	#MaterialSR
-	for r, i, v in m.V_MatCons:
-		val = value ( m.V_MatCons[r, i, v] )
+	for r, i, t, v in m.V_MatCons:
+		val = value ( m.V_MatCons[r, i, t, v] )
 		if abs(val) < epsilon: continue
-		svars['V_MatCons'][r, i, v] = val
+		svars['V_MatCons'][r, i, t, v] = val
 
 	# Calculate model costs:
 	if hasattr(options, 'file_location') and os.path.join('temoa_model', 'config_sample_myopic') not in options.file_location: 
@@ -465,9 +465,9 @@ def pformat_results ( pyomo_instance, pyomo_result, options ):
 			  "V_EmissionActivityByPeriodAndProcess" : "Output_Emissions", \
 			  "Objective"  : "Output_Objective", \
 			  #CostMOO
-			  "V_cost_MOO": "Output_TotalSystemCost", \
+			  "V_Costs_MOO": "Output_TotalCosts", \
 			  #EmissionsMOO
-			  "V_comm_emi_MOO": "Output_TotalEmissions", \
+			  "V_Emissions_MOO": "Output_TotalEmissions", \
 			  #EnergySR
 			  "V_EnergySupplyRisk": "Output_EnergySupplyRisk", \
 			  #MaterialSR
@@ -573,41 +573,44 @@ def pformat_results ( pyomo_instance, pyomo_result, options ):
 						cur.execute("INSERT INTO "+tables[table]+" \
 									VALUES('"+options.scenario+"',"+key_str+", \
 									"+str(svars[table][key])+");")
-				elif table == 'V_cost_MOO':
+				elif table == 'V_Costs_MOO':
 					for key in svars[table].keys():
 						key_str = str(key)
 						key_str = key_str[1:-1]  # Remove parentheses
-						cur.execute("INSERT INTO " + tables[table] + " (scenario, total_system_cost) \
-					                 VALUES (?, ?);",
-									(options.scenario, svars[table][key]))
-				elif table == 'V_comm_emi_MOO':
+						cur.execute("INSERT INTO " + tables[table] + " (regions, scenario, t_periods, total_costs) \
+											                 VALUES (?, ?, ?, ?);",
+									(key[0], options.scenario, key[1], svars[table][key]))
+				elif table == 'V_Emissions_MOO':
 					for key in svars[table].keys():
 						key_str = str(key)
 						key_str = key_str[1:-1]  # Remove parentheses
-						cur.execute("INSERT INTO " + tables[table] + " (scenario, total_emissions) \
-					                 VALUES (?, ?);",
-									(options.scenario, svars[table][key]))
+						cur.execute("INSERT INTO " + tables[table] + " (regions, scenario, t_periods, total_emissions) \
+											                 VALUES (?, ?, ?, ?);",
+									(key[0], options.scenario, key[1], svars[table][key]))
 				elif table == 'V_EnergySupplyRisk':
 					for key in svars[table].keys():
 						key_str = str(key)
 						key_str = key_str[1:-1]  # Remove parentheses
-						cur.execute("INSERT INTO " + tables[table] + " (scenario, energySR) \
-											                 VALUES (?, ?);",
-									(options.scenario, svars[table][key]))
+						cur.execute("INSERT INTO " + tables[table] + " (regions, scenario, t_periods, energySR) \
+											                 VALUES (?, ?, ?, ?);",
+									(key[0], options.scenario, key[1], svars[table][key]))
 				elif table == 'V_MaterialSupplyRisk':
 					for key in svars[table].keys():
 						key_str = str(key)
 						key_str = key_str[1:-1]  # Remove parentheses
-						cur.execute("INSERT INTO " + tables[table] + " (scenario, materialSR) \
-											                 VALUES (?, ?);",
-									(options.scenario, svars[table][key]))
+						cur.execute("INSERT INTO " + tables[table] + " (regions, scenario, t_periods, materialSR) \
+											                 VALUES (?, ?, ?, ?);",
+									(key[0], options.scenario, key[1], svars[table][key]))
 				elif table == 'V_MatCons':
 					for key in svars[table].keys():
 						key_str = str(key)
 						#key_str = key_str[1:-1]  # Rimuovi le parentesi
-						cur.execute("INSERT INTO " + tables[table] + " (scenario, material, vintage, vmat_cons) \
-					                 VALUES (?, ?, ?, ?);",
-									(options.scenario, key[1], key[2], svars[table][key]))
+						cur.execute("INSERT INTO " + tables[table] + " (regions, scenario, material_comm, tech, vintage, vmat_cons) \
+					                 VALUES (?, ?, ?, ?, ?, ?);",
+									(key[0], options.scenario, key[1], key[2], key[3], svars[table][key]))
+						cur.execute("UPDATE " + tables[table] + " SET sector = \
+														(SELECT technologies.sector FROM technologies \
+														WHERE " + tables[table] + ".tech = technologies.tech);")
 				elif table == 'V_slack':
 					for key in svars[table].keys():
 						key_str = str(key)
