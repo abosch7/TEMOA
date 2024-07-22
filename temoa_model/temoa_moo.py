@@ -42,7 +42,7 @@ def f2lowest_rule( M, moo_f2 ):
 	if moo_f2 == 'cost':
 		return sum(Costs_moo(M, r, p) for p in M.time_optimize for r in M.regions)
 	elif moo_f2 == 'emissions':
-		return sum(Emissions_moo( M, r, p ) for p in M.time_optimize if p == 2050 for r in M.regions)
+		return sum(Emissions_moo( M, r, p ) for p in M.time_optimize for r in M.regions)
 	elif moo_f2 == 'energySR':
 		return sum(EnergySupplyRisk_moo( M, r, p ) for p in M.time_optimize for r in M.regions)
 	elif moo_f2 == 'materialSR':
