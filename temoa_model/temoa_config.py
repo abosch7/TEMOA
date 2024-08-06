@@ -122,8 +122,7 @@ def db_2_dat(ifile, ofile, options):
 		['set',  'tech_ramping',              			'',                    '',             0],
 		['set',  'tech_exchange',             			'',                    '',             0],
 		['set',  'tech_imports',              			'',                    '',             0], #EnergySR
-		['set',  'tech_exports',              			'',                    '',             0], #EnergySR
-		['set',  'tech_domestic',             			'',                    '',             0], #EnergySR
+		['set',  'tech_exports',                         '',                    '',            0],  # EnergySR
 		['set',  'commodities',               			'commodity_physical',  'p',            0],
 		['set',  'commodities',               			'commodity_material',  'm',            0], #MaterialSR
 		['set',  'commodities',               			'commodity_emissions', 'e',            0],
