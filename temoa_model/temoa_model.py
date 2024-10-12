@@ -68,6 +68,7 @@ def temoa_create_model(name="Temoa"):
     M.tech_all = M.tech_resource | M.tech_production
     M.tech_imports = Set(within=M.tech_all) #EnergySR
     M.tech_exports = Set(within=M.tech_all) #EnergySR
+    M.tech_domestic = Set(within=M.tech_all) #EnergySR
     M.tech_baseload = Set(within=M.tech_all)
     M.tech_storage = Set(within=M.tech_all)
     M.tech_reserve = Set(within=M.tech_all)

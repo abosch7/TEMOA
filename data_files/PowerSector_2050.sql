@@ -233,6 +233,16 @@ CREATE TABLE "tech_exports" (
 	"notes"	text,
 	PRIMARY KEY("tech")
 );
+--EnergySR
+CREATE TABLE "tech_domestic" (
+	"tech"	text,
+	"notes"	text,
+	PRIMARY KEY("tech")
+);
+INSERT INTO "tech_domestic" VALUES ('UPS_MIN_COA','');
+INSERT INTO "tech_domestic" VALUES ('UPS_MIN_NGA','');
+INSERT INTO "tech_domestic" VALUES ('UPS_RNW_BIO','');
+INSERT INTO "tech_domestic" VALUES ('H2_GEN','');
 
 CREATE TABLE "tech_exchange" (
 	"tech"	text,

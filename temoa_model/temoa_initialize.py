@@ -1089,7 +1089,7 @@ def ImportShareConstraintIndices ( M ):
 	  if r in M.regions # this line ensures only the regions are included.
 	  for t, v in M.commodityUStreamProcess[ r, p, o ]
 	  if (r, t) not in M.tech_storage
-	  if t in M.tech_imports or t in M.tech_exports # Needed to ensure to have consistent indices between ImportShare_Constraint
+	  if t in M.tech_imports or t in M.tech_exports or t in M.tech_domestic # Needed to ensure to have consistent indices between ImportShare_Constraint
 	) # and V_ImportShare, as well as for ImportReliance
 
 	return indices
