@@ -3,31 +3,26 @@
 
 This is an extended version of the [TEMOA](https://temoacloud.com/) (Tools for Energy Modeling Optimization and Analysis) energy system modeling framework.
 
-The development team currently includes [Matteo Nicoli](http://www.mahtep.polito.it/people/phd_students/nicoli_matteo), [Gianvito Colucci](http://www.mahtep.polito.it/people/phd_students/colucci_gianvito), [Daniele Lerede](http://www.mahtep.polito.it/people/phd_students/lerede_daniele) and Prof. [Laura Savoldi](http://www.mahtep.polito.it/people/head/savoldi_laura) from [MAHTEP Group](http://www.mahtep.polito.it/) at [Department of Energy](https://www.denerg.polito.it/en/) of [Politecnico di Torino](https://www.polito.it/). For any communication related to our TEMOA version, please write to [matteo.nicoli@polito.it](mailto:matteo.nicoli@polito.it).
-
-Figure 1 schematically shows the main differences between the [original TEMOA](https://github.com/TemoaProject/temoa) version and the MAHTEP version.
-
-![](docs/TEMOA.svg)
-*Figure 1. Original (a) and extended (b) TEMOA structure.*
-
-The main changes between the two versions concern:
-* Integration of new parameters and constraints in the TEMOA algorithm, as explained in [1].
-* Development of a database pre-processing module, whom functions are explained in [1].
-* Development of a database post-processing module, to derive aggregated results by technologies, commodities, and groups of them.
+This model version is maintained by the by the [MAHTEP Group](http://www.mahtep.polito.it/) at the Department of Energy of [Politecnico di Torino](https://www.polito.it/) and at the Department of Economics and Statistic of [Università degli Studi di Torino].
+The group is lead by Prof. [Laura Savoldi](http://www.mahtep.polito.it/people/coordinators/savoldi_laura) ad Prof. [Valeria di Cosmo](http://www.mahtep.polito.it/people/coordinators/di_cosmo_valeria). For any communication related to this TEMOA version, please write to [matteo.nicoli@polito.it](mailto:matteo.nicoli@polito.it).
 
 The public model instances based on this TEMOA version are:
-* [TEMOA-Italy](https://github.com/MAHTEP/TEMOA-Italy)
 * [TEMOA-Europe](https://github.com/MAHTEP/TEMOA-Europe)
+* [TEMOA-Italy](https://github.com/MAHTEP/TEMOA-Italy)
+* [TEMOA-Piedmont](https://github.com/MAHTEP/TEMOA-Piedmont)
 
 Below, the list of publications in which this version was used:
-1. M. Nicoli, F. Gracceva, D. Lerede, and L. Savoldi, “Can We Rely on Open-Source Energy System Optimization Models? The TEMOA-Italy Case Study,” Energies (Basel), vol. 15, no. 18, p. 6505, Sep. 2022, doi: 10.3390/en15186505.
-2. M. Nicoli, A TIMES-like open-source model for the Italian energy system. Turin, 2021. Accessed: Jul. 05, 2022. [Online]. Available: https://webthesis.biblio.polito.it/18850/
-3. G. Colucci, D. Lerede, M. Nicoli, and L. Savoldi, “A dynamic accounting method for CO2 emissions to assess the penetration of low-carbon fuels: application to the TEMOA-Italy energy system optimization model,” Appl Energy, vol. 352, no. 121951, Dec. 2023, doi: 10.1016/j.apenergy.2023.121951.
-4. G. Colucci, D. Lerede, M. Nicoli, and L. Savoldi, “Dynamic Accounting for End-Use CO2 Emissions From Low-Carbon Fuels in Energy System Optimization Models,” Energy Proceedings, 2022, doi: 10.46855/energy-proceedings-10294.
-5. A. Balbo, G. Colucci, M. Nicoli, and L. Savoldi, “Exploring the Role of Hydrogen to Achieve the Italian Decarbonization Targets Using an Open-Source Energy System Optimization Model,” in International Journal of Energy and Power Engineering, E. and T. World Academy of Science, Ed., Mar. 2023, pp. 89–100. Accessed: Apr. 24, 2023. [Online]. Available: https://publications.waset.org/10013040/exploring-the-role-of-hydrogen-to-achieve-the-italian-decarbonization-targets-using-an-open-source-energy-system-optimization-model
-6. A. Balbo, “Will hydrogen be a game-changer in the Italian decarbonization pathways? Exploiting an Energy System Optimization Model for scenario analysis,” Politecnico di Torino, 2022. Accessed: Feb. 11, 2023. [Online]. Available: https://webthesis.biblio.polito.it/24983/
-7. M. E. Alfano, “Modeling the Energy and the Water Systems in an open-access Energy System Optimization Model: the Pantelleria case study,” Politecnico di Torino, 2022. Accessed: Jan. 19, 2023. [Online]. Available: https://webthesis.biblio.polito.it/24982/
-8. D. Lerede, “Development of an open-source and open-data energy system optimization model for the analysis of the European energy mix,” pp. 1–178, Mar. 2023, Accessed: May 04, 2023. [Online]. Available: https://iris.polito.it/handle/11583/2978154
+1. A. Vai, G. Colucci, M. Nicoli, and L. Savoldi, “May the availability of critical raw materials affect the security of energy systems? An analysis for risk-aware energy planning with TEMOA-Italy,” Mater Today Energy, vol. 48, no. 101805, 2025, doi: 10.1016/j.mtener.2025.101805.
+2. F. Amir Kavei, M. Nicoli, F. Quatraro, and L. Savoldi, “Enhancing energy transition with open-source regional energy system optimization models: TEMOA-Piedmont,” Energy Convers Manag, vol. 327, p. 119536, Mar. 2025, doi: 10.1016/J.ENCONMAN.2025.119536.
+3. M. Nicoli, G. Colucci, V. Di Cosmo, D. Lerede, and L. Savoldi, “Evaluating the impact of hurdle rates on the Italian energy transition through TEMOA,” Appl Energy, vol. 377PC, no. 124633, 2024, doi: 10.1016/j.apenergy.2024.124633.
+4. M. Nicoli, V. A. D. Faria, A. R. de Queiroz, and L. Savoldi, “Modeling energy storage in long-term capacity expansion energy planning: an analysis of the Italian system,” J Energy Storage, vol. 101PA, no. 113814, 2024, doi: 10.1016/j.est.2024.113814.
+5. M. Nicoli et al., “Enabling Coherence Between Energy Policies and SDGs Through Open Energy Models: The TEMOA-Italy Example,” in Aligning the Energy Transition with the Sustainable Development Goals: Key Insights from Energy System Modelling, M. Labriet, K. Espegren, G. Giannakidis, and B. O’Gallachoir, Eds., Springer, 2024, pp. 97–118. doi: 10.1007/978-3-031-58897-6_5.
+6. D. Mosso, G. Colucci, D. Lerede, M. Nicoli, M. S. Piscitelli, and L. Savoldi, “How much do carbon emission reduction strategies comply with a sustainable development of the power sector?,” Energy Reports, vol. 11, pp. 3064–3087, Jun. 2024, doi: 10.1016/J.EGYR.2024.02.056.
+7. G. Colucci, D. Lerede, M. Nicoli, and L. Savoldi, “A dynamic accounting method for CO2 emissions to assess the penetration of low-carbon fuels: application to the TEMOA-Italy energy system optimization model,” Appl Energy, vol. 352, no. 121951, Dec. 2023, doi: 10.1016/j.apenergy.2023.121951.
+8. D. Lerede, M. Nicoli, L. Savoldi, and A. Trotta, “Analysis of the possible contribution of different nuclear fusion technologies to the global energy transition,” Energy Strategy Reviews, vol. 49, no. 101144, Sep. 2023, doi: 10.1016/j.esr.2023.101144.
+9. M. Nicoli, “A TIMES-like open-source model for the Italian energy system,” Politecnico di Torino, Turin, 2021. Accessed: Jul. 05, 2022. [Online]. Available: https://webthesis.biblio.polito.it/18850/
+10. M. Nicoli, F. Gracceva, D. Lerede, and L. Savoldi, “Can We Rely on Open-Source Energy System Optimization Models? The TEMOA-Italy Case Study,” Energies (Basel), vol. 15, no. 18, p. 6505, Sep. 2022, doi: 10.3390/en15186505.
+
 
 # Overview
 
@@ -59,9 +54,8 @@ Contains the source code for the Temoa project manual, in reStructuredText
 
 Temoa requires several software elements, and it is most convenient to create 
 a conda environment in which to run the model. To begin, you need to have conda 
-installed either via miniconda or anaconda. Next, download the environment.yml file, 
-and  place in a new directory named 'temoa-py3.' Create this new directory in 
-a location where you wish to store the environment. From the command line:
+installed either via miniconda or anaconda. Next, download the environment.yml file.
+From the command line:
 
 ```$ conda env create```
 

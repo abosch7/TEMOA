@@ -84,7 +84,8 @@ def temoa_create_model(name="Temoa"):
     M.commodity_demand = Set()
     M.commodity_emissions = Set()
     M.commodity_physical = Set()
-    M.commodity_carrier = M.commodity_physical | M.commodity_demand
+    M.commodity_material = Set()
+    M.commodity_carrier = M.commodity_physical | M.commodity_demand | M.commodity_material
     M.commodity_all = M.commodity_carrier | M.commodity_emissions
 
     # Define sets for MGA weighting
@@ -244,6 +245,9 @@ def temoa_create_model(name="Temoa"):
 
     M.MyopicBaseyear = Param(default=0, mutable=True)
 
+    M.MaterialIntensity = Param(M.RegionalIndices, M.commodity_material, M.tech_all, M.vintage_optimize, default=0)
+    M.MaxMaterialReserve = Param(M.RegionalIndices, M.tech_all)
+
     # ---------------------------------------------------------------
     # Define Decision Variables.
     # Decision variables are optimized in order to minimize cost.
@@ -283,6 +287,8 @@ def temoa_create_model(name="Temoa"):
     M.V_CapacityAvailableByPeriodAndTech = Var(
         M.CapacityAvailableVar_rpt, domain=NonNegativeReals
     )
+
+    M.V_MatCons = Var(M.RegionalIndices, M.commodity_material, M.tech_all, M.vintage_optimize, domain=NonNegativeReals, initialize=0)
 
     # ---------------------------------------------------------------
     # Declare the Objective Function.
@@ -344,6 +350,20 @@ def temoa_create_model(name="Temoa"):
     M.CommodityBalanceAnnualConstraint = Constraint(
         M.CommodityBalanceAnnualConstraint_rpc, rule=CommodityBalanceAnnual_Constraint
     )    
+
+    M.MaterialConsumptionConstraint = Constraint(
+        M.regions, M.commodity_material, M.tech_all, M.vintage_optimize, rule=MaterialConsumption_Constraint
+    )
+    M.MaterialBalanceConstraint = Constraint(
+        M.regions, M.time_optimize, M.commodity_material, rule=MaterialBalance_Constraint
+    )
+
+    M.MaxMaterialReserveConstraint_rt = Set(
+        dimen=2, initialize=lambda M: M.MaxMaterialReserve.sparse_iterkeys()
+    )
+    M.MaxMaterialReserveConstraint = Constraint(
+        M.MaxMaterialReserveConstraint_rt, rule=MaxMaterialReserve_Constraint
+    )
 
     M.ResourceConstraint_rpr = Set(
         dimen=3, initialize=lambda M: M.ResourceBound.sparse_iterkeys()

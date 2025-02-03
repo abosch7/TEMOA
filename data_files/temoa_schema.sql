@@ -1,4 +1,4 @@
-
+BEGIN TRANSACTION;
 CREATE TABLE "regions" (
 	"regions"	TEXT,
 	"region_note"	TEXT,
@@ -112,7 +112,7 @@ CREATE TABLE "MinActivityGroup" (
 	"group_name"	text,
 	"min_act_g"	real,
 	"notes"	text,
-	PRIMARY KEY("periods","group_name","regions")
+	PRIMARY KEY("regions","periods","group_name")
 );
 CREATE TABLE "MaxActivityGroup" (
 	"regions"	text,
@@ -120,7 +120,7 @@ CREATE TABLE "MaxActivityGroup" (
 	"group_name"	text,
 	"max_act_g"	real,
 	"notes"	text,
-	PRIMARY KEY("periods","group_name")
+	PRIMARY KEY("regions","periods","group_name")
 );
 CREATE TABLE "MinCapacityGroup" (
 	"regions"	text,
@@ -128,7 +128,7 @@ CREATE TABLE "MinCapacityGroup" (
 	"group_name"	text,
 	"min_cap_g"	real,
 	"notes"	text,
-	PRIMARY KEY("periods","group_name")
+	PRIMARY KEY("regions","periods","group_name")
 );
 CREATE TABLE "MaxCapacityGroup" (
 	"regions"	text,
@@ -136,7 +136,7 @@ CREATE TABLE "MaxCapacityGroup" (
 	"group_name"	text,
 	"max_cap_g"	real,
 	"notes"	text,
-	PRIMARY KEY("periods","group_name")
+	PRIMARY KEY("regions","periods","group_name")
 );
 CREATE TABLE "MinInputGroup" (
 	"regions"	      text,
@@ -606,6 +606,28 @@ CREATE TABLE "MaxResource" (
 	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
 	PRIMARY KEY("regions","tech")
 );
+CREATE TABLE "MaxMaterialReserve" (
+	"regions"	text,
+	"tech"	text,
+	"maxres"	real,
+	"maxres_units"	text,
+	"maxres_notes"	text,
+	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+	PRIMARY KEY("regions","tech")
+);
+CREATE TABLE "MaterialIntensity" (
+	"regions"	text,
+	"comm_name" text,
+	"tech"	text,
+	"vintage"	integer,
+	"mat_int"	real,
+	"mat_int_units"	text,
+	"mat_int_notes"	text,
+	PRIMARY KEY("regions","tech","comm_name","vintage"),
+	FOREIGN KEY("comm_name") REFERENCES "commodities"("comm_name"),
+	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
+);
 CREATE TABLE "Output_V_Capacity" (
 	"regions"	text,
 	"scenario"	text,
@@ -734,4 +756,17 @@ CREATE TABLE "Output_CapacityByPeriodAndTech" (
 	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
 	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
 	FOREIGN KEY("tech") REFERENCES "technologies"("tech")
+);
+CREATE TABLE "Output_VMat_Cons" (
+	"regions"	text,
+	"scenario"	text,
+	"sector"	text,
+	"material_comm"	text,
+	"tech"	text,
+	"vintage"	integer,
+	"vmat_cons"	real,
+	PRIMARY KEY("regions","scenario","material_comm","tech","vintage"),
+	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+	FOREIGN KEY("material_comm") REFERENCES "commodities"("comm_name")
 );

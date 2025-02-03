@@ -122,6 +122,7 @@ def db_2_dat(ifile, ofile, options):
 		['set',  'tech_ramping',              '',                    '',             0],
 		['set',  'tech_exchange',             '',                    '',             0],
 		['set',  'commodities',               'commodity_physical',  'p',            0],
+		['set',  'commodities',               'commodity_material',  'm',            0],
 		['set',  'commodities',               'commodity_emissions', 'e',            0],
 		['set',  'commodities',               'commodity_demand',    'd',            0],
 		['set',  'tech_groups',               '',                    '',             0],
@@ -173,7 +174,9 @@ def db_2_dat(ifile, ofile, options):
 		['param','RampUp',                    '',                    '',             2],
 		['param','RampDown',                  '',                    '',             2],
 		['param','StorageInitFrac',           '',                    '',             3],
-		['param','StorageDuration',           '',                    '',             2]]
+		['param','StorageDuration',           '',                    '',             2],
+	    ['param','MaterialIntensity',         '',                    '',             4],
+	    ['param','MaxMaterialReserve',        '',                    '',             2]]
 
 	with open(ofile, 'w') as f:
 		f.write('data ;\n\n')

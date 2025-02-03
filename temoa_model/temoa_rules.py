@@ -493,6 +493,70 @@ and not  :math:`\textbf{FOA}`
     expr = act_a * DSD[r, s, d, dem] == act_b * DSD[r, s_0, d_0, dem]
     return expr
 
+def MaterialConsumption_Constraint(M, r, m, t, v):
+
+    if m not in M.commodity_material:
+        return Constraint.Skip
+
+    expr = M.V_MatCons[r, m, t, v] == sum(
+        M.V_Capacity[r, S_t, S_v] * value( M.MaterialIntensity[r, m, S_t, S_v] )
+        for r, S_t, S_v in M.CostInvest.sparse_iterkeys()
+        if S_v == v and S_t == t
+    )
+
+    return expr
+
+def MaterialBalance_Constraint(M, r, p, m):
+
+    if m not in M.commodity_material:
+        return Constraint.Skip
+
+    mat_cons = sum(
+        M.V_MatCons[r, m, S_t, S_v]
+        for r, S_t, S_v in M.CostInvest.sparse_iterkeys()
+        if S_v == p
+    )
+
+    mat_prod = sum(
+        M.V_FlowOut[r, p, s, d, S_i, S_t, S_v, m]
+        for S_t, S_v in M.commodityUStreamProcess[r, p, m]
+        for S_i in M.ProcessInputsByOutput[r, p, S_t, S_v, m]
+        for d in M.time_of_day
+        for s in M.time_season
+    )
+
+    expr = mat_prod == mat_cons
+
+    return expr
+
+def MaxMaterialReserve_Constraint(M, r, t):
+
+    max_reserve = value(M.MaxMaterialReserve[r, t])
+
+    try:
+      mat_supply_tot = sum(
+          M.V_FlowOut[r, p, s, d, S_i, t, S_v, S_o]
+          for p in M.time_optimize
+          if (r, p, t) in M.processVintages.keys()
+          for S_v in M.processVintages[r, p, t]
+          for S_i in M.processInputs[r, p, t, S_v]
+          for S_o in M.ProcessOutputsByInput[r, p, t, S_v, S_i]
+          for s in M.time_season
+          for d in M.time_of_day
+      )
+    except:
+      mat_supply_tot = sum(
+          M.V_FlowOutAnnual[r, p, S_i, t, S_v, S_o]
+          for p in M.time_optimize
+          if (r, p, t) in M.processVintages.keys()
+          for S_v in M.processVintages[r, p, t]
+          for S_i in M.processInputs[r, p, t, S_v]
+          for S_o in M.ProcessOutputsByInput[r, p, t, S_v, S_i]
+      )
+
+    expr = mat_supply_tot <= max_reserve
+
+    return expr
 
 def CommodityBalance_Constraint(M, r, p, s, d, c):
     r"""
