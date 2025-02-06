@@ -1753,27 +1753,26 @@ set.
     else:
       reg = [r]
 
-    try:
-      activity_rpt = sum(
-          M.V_FlowOut[r, p, s, d, S_i, t, S_v, S_o]
-          for r in reg
-          for S_v in M.processVintages[r, p, t]
-          for S_i in M.processInputs[r, p, t, S_v]
-          for S_o in M.ProcessOutputsByInput[r, p, t, S_v, S_i]
-          for s in M.time_season
-          for d in M.time_of_day
-      )
-    except:
-      activity_rpt = sum(
-          M.V_FlowOutAnnual[r, p, S_i, t, S_v, S_o]
-          for r in reg
-          for S_v in M.processVintages[r, p, t]
-          for S_i in M.processInputs[r, p, t, S_v]
-          for S_o in M.ProcessOutputsByInput[r, p, t, S_v, S_i]
-      )
+    activity_rpt = sum(
+        M.V_FlowOut[r, p, s, d, S_i, t, S_v, S_o]
+        for r in reg if (t not in M.tech_annual) and ((r, p, t) in M.processVintages.keys())
+        for S_v in M.processVintages[r, p, t]
+        for S_i in M.processInputs[r, p, t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, t, S_v, S_i]
+        for s in M.time_season
+        for d in M.time_of_day
+    )
+
+    activity_rpt_annual = sum(
+        M.V_FlowOutAnnual[r, p, S_i, t, S_v, S_o]
+        for r in reg if (t in M.tech_annual) and ((r, p, t) in M.processVintages.keys())
+        for S_v in M.processVintages[r, p, t]
+        for S_i in M.processInputs[r, p, t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, t, S_v, S_i]
+    )
 
     max_act = value(M.MaxActivity[r, p, t])
-    expr = activity_rpt <= max_act
+    expr = activity_rpt + activity_rpt_annual <= max_act
     return expr
 
 
@@ -1808,27 +1807,26 @@ set.
     else:
       reg = [r]
 
-    try:
-      activity_rpt = sum(
-          M.V_FlowOut[r, p, s, d, S_i, t, S_v, S_o]
-          for r in reg
-          for S_v in M.processVintages[r, p, t]
-          for S_i in M.processInputs[r, p, t, S_v]
-          for S_o in M.ProcessOutputsByInput[r, p, t, S_v, S_i]
-          for s in M.time_season
-          for d in M.time_of_day
-      )
-    except:
-      activity_rpt = sum(
-          M.V_FlowOutAnnual[r, p, S_i, t, S_v, S_o]
-          for r in reg
-          for S_v in M.processVintages[r, p, t]
-          for S_i in M.processInputs[r, p, t, S_v]
-          for S_o in M.ProcessOutputsByInput[r, p, t, S_v, S_i]
-      )
+    activity_rpt = sum(
+        M.V_FlowOut[r, p, s, d, S_i, t, S_v, S_o]
+        for r in reg if (t not in M.tech_annual) and ((r, p, t) in M.processVintages.keys())
+        for S_v in M.processVintages[r, p, t]
+        for S_i in M.processInputs[r, p, t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, t, S_v, S_i]
+        for s in M.time_season
+        for d in M.time_of_day
+    )
+
+    activity_rpt_annual = sum(
+        M.V_FlowOutAnnual[r, p, S_i, t, S_v, S_o]
+        for r in reg if (t in M.tech_annual) and ((r, p, t) in M.processVintages.keys())
+        for S_v in M.processVintages[r, p, t]
+        for S_i in M.processInputs[r, p, t, S_v]
+        for S_o in M.ProcessOutputsByInput[r, p, t, S_v, S_i]
+    )
 
     min_act = value(M.MinActivity[r, p, t])
-    expr = activity_rpt >= min_act
+    expr = activity_rpt + activity_rpt_annual >= min_act
     return expr
 
 
