@@ -330,7 +330,7 @@ def pformat_results ( pyomo_instance, pyomo_result, options ):
 		# assumption 3: Unlike other output tables in which Ri-Rj and Rj-Ri entries
 		# are allowed in the region column, for the Output_Costs table the region 
 		#to the right of the hyphen sign gets the costs.
-		for i in m.RegionalExchangeCapacityConstraint_rrtv.iterkeys():
+		for i in m.RegionalExchangeCapacityConstraint_rrtv:
 			reg_dir1  = i[0]+"-"+i[1]
 			reg_dir2 = i[1]+"-"+i[0]
 			tech = i[2]
@@ -685,37 +685,37 @@ def dat_to_db(input_file, output_schema, run_partial=False):
 
 	#Fill time_periods
 	for i in parsed_data['time_exist']:
-		if i is '': 
+		if i == '': 
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO time_periods VALUES("+i+", 'e');")
 	for i in parsed_data['time_future']:
-		if i is '':
+		if i == '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO time_periods VALUES("+i+", 'f');")
 	
 	#Fill time_season
 	for i in parsed_data['time_season']:
-		if i is '':
+		if i == '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO time_season VALUES('"+i+"');")
 	
 	#Fill time_of_day
 	for i in parsed_data['time_of_day']:
-		if i is '':
+		if i == '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO time_of_day VALUES('"+i+"');")
 	
 	#Fill technologies
 	for i in parsed_data['tech_baseload']:
-		if i is '':
+		if i == '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO technologies VALUES('"+i+"', 'pb', '', '');")
 	for i in parsed_data['tech_storage']:
-		if i is '':
+		if i == '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO technologies VALUES('"+i+"', 'ph', '', '');")		
 	for i in parsed_data['tech_production']:
-		if i is '':
+		if i == '':
 			continue
 		if i in parsed_data['tech_storage']:
 			continue
@@ -723,28 +723,28 @@ def dat_to_db(input_file, output_schema, run_partial=False):
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO technologies VALUES('"+i+"', 'p', '', '');")
 	for i in parsed_data['tech_resource']:
-		if i is '':
+		if i == '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO technologies VALUES('"+i+"', 'r', '', '');")
 	
 	#Fill commodities
 	for i in parsed_data['commodity_demand']:
-		if i is '':
+		if i == '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO commodities VALUES('"+i+"', 'd', '');")
 	for i in parsed_data['commodity_physical']:
-		if i is '':
+		if i == '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO commodities VALUES('"+i+"', 'p', '');")
 	for i in parsed_data['commodity_emissions']:
-		if i is '':
+		if i == '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO commodities VALUES('"+i+"', 'e', '');")
 
 		
 	#Fill ExistingCapacity
 	for i in parsed_data['ExistingCapacity']:
-		if i is '':
+		if i == '':
 			continue
 		row_data = re.split(" ", i)
 		row_data.append('')
@@ -753,7 +753,7 @@ def dat_to_db(input_file, output_schema, run_partial=False):
 	
 	#Fill Efficiency
 	for i in parsed_data['Efficiency']:
-		if i is '':
+		if i == '':
 			continue
 		row_data = re.split(" ", i)
 		row_data.append('')
@@ -761,7 +761,7 @@ def dat_to_db(input_file, output_schema, run_partial=False):
 		
 	#Fill LifetimeTech
 	for i in parsed_data['LifetimeTech']:
-		if i is '':
+		if i == '':
 			continue
 		row_data = re.split(" ", i)
 		row_data.append('')
@@ -769,7 +769,7 @@ def dat_to_db(input_file, output_schema, run_partial=False):
 	
 	#Fill LifetimeProcess
 	for i in parsed_data['LifetimeProcess']:
-		if i is '':
+		if i == '':
 			continue
 		row_data = re.split(" ", i)
 		row_data.append('')
@@ -777,11 +777,11 @@ def dat_to_db(input_file, output_schema, run_partial=False):
 	
 	#Fill EmissionActivity
 	for i in parsed_data['EmissionActivity']:
-		if i is '':
+		if i == '':
 			continue
 		row_data = re.split(" ", i)
 		row_data.append('')
-		if len(row_data) is 7:
+		if len(row_data) == 7:
 			row_data.append('')
 		output_schema.execute("INSERT OR REPLACE INTO EmissionActivity VALUES(?, ?, ?, ?, ?, ?, ?, ?);", row_data)
 			
