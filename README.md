@@ -3,7 +3,7 @@
 
 This is an extended version of the [TEMOA](https://temoacloud.com/) (Tools for Energy Modeling Optimization and Analysis) energy system modeling framework.
 
-This model version is maintained by the by the [MAHTEP Group](http://www.mahtep.polito.it/) at the Department of Energy of [Politecnico di Torino](https://www.polito.it/) and at the Department of Economics and Statistic of [Università degli Studi di Torino].
+This model version is maintained by the by the [MAHTEP Group](http://www.mahtep.polito.it/) at the Department of Energy of [Politecnico di Torino](https://www.polito.it/) and at the Department of Economics and Statistic of [Università degli Studi di Torino](https://www.unito.it/).
 The group is lead by Prof. [Laura Savoldi](http://www.mahtep.polito.it/people/coordinators/savoldi_laura) ad Prof. [Valeria di Cosmo](http://www.mahtep.polito.it/people/coordinators/di_cosmo_valeria). For any communication related to this TEMOA version, please write to [matteo.nicoli@polito.it](mailto:matteo.nicoli@polito.it).
 
 The public model instances based on this TEMOA version are:
