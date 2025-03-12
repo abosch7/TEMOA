@@ -49,6 +49,7 @@ Anaconda is a Python distribution that simplifies package management and deploym
    git clone https://github.com/MAHTEP/TEMOA.git
    ```
 4. Extract the ZIP file to a folder on your computer.
+5. Rename the folder with the model source code as "TEMOA".
 
 ### Step 3: Create the Conda Virtual Environment
 A virtual environment ensures that dependencies are installed in an isolated environment.
@@ -109,7 +110,11 @@ In the `config_sample` file, users can specify:
 
 To test that TEMOA is working correctly, users can optimize the `temoa_utopia.sqlite` database, which represents a simple model instance developed for testing purposes.
 
-After configuring the settings, TEMOA can be run using the following command:
+After configuring the settings, navigate to the extracted TEMOA directory using the `cd` command:
+```sh
+cd ../TEMOA/
+```
+TEMOA can be run using the following command:
 ```sh
 python temoa_model --config=temoa_model/config_sample
 ```
