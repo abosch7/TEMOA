@@ -3,7 +3,7 @@
 
 This is an extended version of the [TEMOA](https://temoacloud.com/) (Tools for Energy Modeling Optimization and Analysis) energy system modeling framework.
 
-This model version is maintained by the by the [MAHTEP Group](http://www.mahtep.polito.it/) at the Department of Energy of [Politecnico di Torino](https://www.polito.it/) and at the Department of Economics and Statistic of [Università degli Studi di Torino](https://www.unito.it/).
+This model version is maintained by the by the [MAHTEP Group](http://www.mahtep.polito.it/) at the Department of Energy of [Politecnico di Torino](https://www.polito.it/) and at the Department of Economics and Statistic of [Università degli Studi di Torino].
 The group is lead by Prof. [Laura Savoldi](http://www.mahtep.polito.it/people/coordinators/savoldi_laura) ad Prof. [Valeria di Cosmo](http://www.mahtep.polito.it/people/coordinators/di_cosmo_valeria). For any communication related to this TEMOA version, please write to [matteo.nicoli@polito.it](mailto:matteo.nicoli@polito.it).
 
 The public model instances based on this TEMOA version are:
@@ -24,92 +24,93 @@ Below, the list of publications in which this version was used:
 10. M. Nicoli, F. Gracceva, D. Lerede, and L. Savoldi, “Can We Rely on Open-Source Energy System Optimization Models? The TEMOA-Italy Case Study,” Energies (Basel), vol. 15, no. 18, p. 6505, Sep. 2022, doi: 10.3390/en15186505.
 
 
-# Overview
+## Installation Guide
+This guide provides step-by-step instructions to install the required software for running the TEMOA energy system optimization model.
 
-The 'energysystem' branch is the current master branch of
-Temoa.  The four subdirectories are:
+### Step 1: Install Anaconda
+Anaconda is a Python distribution that simplifies package management and deployment.
 
-1. `temoa_model/`
-Contains the core Temoa model code.
+1. Download Anaconda from [https://www.anaconda.com/download](https://www.anaconda.com/download).
+2. Select the appropriate version for your operating system (Windows, macOS, or Linux).
+3. Follow the installation instructions provided on the website.
+4. During installation, check the option to add Anaconda to your system's PATH.
+5. To verify the installation, open a terminal (Command Prompt on Windows, Terminal on macOS/Linux) and type:
+   ```sh
+   conda --version
+   ```
+   If installed correctly, this will return the Anaconda version number.
 
-2. `data_files/`
-Contains simple input data (DAT) files for Temoa. Note that the file 
-'utopia-15.dat' represents a simple system called 'Utopia', which 
-is packaged with the MARKAL model generator and has been used 
-extensively for benchmarking exercises.
+### Step 2: Download the TEMOA source code (MAHTEP version)
 
-3. `data_processing/`
-Contains several modules to make output graphs, network diagrams, and 
-results spreadsheets.
+1. Go to the MAHTEP version of TEMOA on GitHub: [https://github.com/MAHTEP/TEMOA](https://github.com/MAHTEP/TEMOA).
+2. Download the repository as a ZIP file by clicking on "Code" > "Download ZIP".
+3. Alternatively, you can clone the repository using Git:
+   ```sh
+   git clone https://github.com/MAHTEP/TEMOA.git
+   ```
+4. Extract the ZIP file to a folder on your computer.
 
-3. `tools/`
-Contains scripts used to conduct sensitivity and uncertainty analysis. 
-See the READMEs inside each subfolder for more information.
+### Step 3: Create the Conda Virtual Environment
+A virtual environment ensures that dependencies are installed in an isolated environment.
 
-4. `docs/`
-Contains the source code for the Temoa project manual, in reStructuredText
-(ReST) format.
+1. Open a terminal (Anaconda Prompt on Windows, Terminal on macOS/Linux).
+2. Navigate to the extracted TEMOA directory using the `cd` command:
+   ```sh
+   cd ../TEMOA/environments/temoa
+   ```
+3. Create the virtual environment using the provided `environment.yml` file:
+   ```sh
+   conda env create -f temoa.yml
+   ```
+4. Activate the environment:
+   ```sh
+   conda activate temoa
+   ```
+5. To check if the environment is activated, type:
+   ```sh
+   conda env list
+   ```
+   The `temoa` environment should be marked with an asterisk `*`.
 
-## Creating a Temoa Environment
+An alternative virtual environment is required to run TEMOA with stochastic optimization. The guide to install this environment and the necessary steps required to modify accordingly the TEMOA source code are located at:
+```
+TEMOA/environments/temoa-stochastic
+```
 
-Temoa requires several software elements, and it is most convenient to create 
-a conda environment in which to run the model. To begin, you need to have conda 
-installed either via miniconda or anaconda. Next, download the environment.yml file.
-From the command line:
+### Step 4: Install Gurobi and Register an Academic License
+Gurobi is required to solve optimization models in TEMOA.
 
-```$ conda env create```
+1. Download Gurobi from [https://www.gurobi.com/downloads/](https://www.gurobi.com/downloads/).
+2. Follow the installation instructions for your operating system.
+3. After installation, register for an academic named-user license at [https://www.gurobi.com/academia/academic-program-and-licenses/](https://www.gurobi.com/academia/academic-program-and-licenses/).
+4. Ensure that your computer is connected to the academic network during license registration.
+5. Run the following command (provided by the Gurobi website during the license request) to register the license key:
+   ```sh
+   grbgetkey YOUR_LICENSE_KEY
+   ```
+6. If successful, Gurobi should now be ready to use.
 
-Then activate the environment as follows:
+### Step 5: Running a TEMOA Simulation
+To run a TEMOA simulation, the user must specify the settings in the configuration file located at:
+```
+TEMOA/temoa_model/config_sample
+```
 
-```$ source activate temoa-py3```
-
-This new conda environment contains several elements, including Python 3, a 
-compatible version of Pyomo, matplotlib, numpy, scipy, and two free solvers 
-(GLPK and CBC). A note for Windows users: the CBC solver is not available for Windows through conda. Thus, in order to install the environment properly, the last line of the 'environment.yml' file specifying 'coincbc' should be deleted.
-
-To download the Temoa source code, either clone the repository or download from GitHub 
-as a zip file.
-
-## Running Temoa
-
-To run Temoa, you have a few options. All commands below should be executed from the 
-top-level 'temoa' directory.
-
-**Option 1 (full-featured):**
-Invokes python directly, and gives the user access to 
-several model features via a configuration file:
-
-```$ python  temoa_model/  --config=temoa_model/config_sample```
-
-Running the model with a config file allows the user to (1) use a sqlite 
-database for storing input and output data, (2) create a formatted Excel 
-output file, (2) specify the solver to use, (3) return the log file produced during model execution, (4) return the lp file utilized by the solver, and (5) to execute modeling-to-generate alternatives (MGA). Note that if you do not have access to a commercial solver, it may be faster run cplex on the NEOS server. To do so, simply specify cplex as the solver and uncomment the '--neos' flag.
-
-
-**Option 2 (basic):**
-Uses Pyomo's own scripts and provides basic solver output:
-
-```$ pyomo solve --solver=<solver> temoa_model/temoa_model.py  path/to/dat/file```
-
-This option will only work with a text ('DAT') file as input. 
-Results are placed in a yml file within the top-level 'temoa' directory.
-
-
-**Option 3 (basic +):**
-Copies the relevant Temoa model files into an executable archive 
-(this only needs to be done once):
-
-```$ python create_archive.py```
-
-This makes the model more portable by placing all contents in a 
-single zipped file. Now it is possible to execute the model with the 
-following simply command:
-
-```$ python temoa.py  path/to/dat/file```
-
-For general help use --help:
-
-```$ python  temoa_model/  --help```
+In the `config_sample` file, users can specify:
+- **Input database**: The SQLite database containing the model instance.
+- **Output database**: The database where results will be stored.
+- **Scenario name**: The scenario name sed to store results.
+- **Path to data**: The path to the folder containing the input and output database.
+- **Optional settings**, including those necessary to run TEMOA with:
+  - *MGA (Modeling to Generate Alternatives)*: Used to explore alternative solutions.
+  - *MOO (Multi-Objective Optimization)*: Used for multi-objective optimization runs.
+  - *MGPA (Modeling to Generate near-Pareto-optimal Alternatives)*: Used to explore near-pareto optimal alternatives (it combines MGA with MOO).
 
 
+To test that TEMOA is working correctly, users can optimize the `temoa_utopia.sqlite` database, which represents a simple model instance developed for testing purposes.
 
+After configuring the settings, TEMOA can be run using the following command:
+```sh
+python temoa_model --config=temoa_model/config_sample
+```
+If the installation is correct, TEMOA should successfully solve the test model and fill the output tables of the output database with results.
