@@ -53,12 +53,12 @@ Anaconda is a Python distribution that simplifies package management and deploym
 ### Step 3: Create the Conda Virtual Environment
 A virtual environment ensures that dependencies are installed in an isolated environment.
 
-1. Open a terminal (Anaconda Prompt on Windows, Terminal on macOS/Linux).
+1. Open a terminal (Command Prompt on Windows, Terminal on macOS/Linux).
 2. Navigate to the extracted TEMOA directory using the `cd` command:
    ```sh
    cd ../TEMOA/environments/temoa
    ```
-3. Create the virtual environment using the provided `environment.yml` file:
+3. Create the virtual environment:
    ```sh
    conda env create -f temoa.yml
    ```
@@ -114,3 +114,5 @@ After configuring the settings, TEMOA can be run using the following command:
 python temoa_model --config=temoa_model/config_sample
 ```
 If the installation is correct, TEMOA should successfully solve the test model and fill the output tables of the output database with results.
+___
+For further assistance, refer to the official [TEMOA documentation](https://temoacloud.com/temoaproject/) or write to [matteo.nicoli@polito.it](mailto:matteo.nicoli@polito.it).
