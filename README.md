@@ -3,7 +3,7 @@
 
 This is an extended version of the [TEMOA](https://temoacloud.com/) (Tools for Energy Modeling Optimization and Analysis) energy system modeling framework.
 
-This model version is maintained by the by the [MAHTEP Group](http://www.mahtep.polito.it/) at the Department of Energy of [Politecnico di Torino](https://www.polito.it/) and at the Department of Economics and Statistic of [Università degli Studi di Torino].
+This model version is maintained by the by the [MAHTEP Group](http://www.mahtep.polito.it/) at the Department of Energy of [Politecnico di Torino](https://www.polito.it/) and at the Department of Economics and Statistic of [Università degli Studi di Torino](https://www.unito.it/).
 The group is lead by Prof. [Laura Savoldi](http://www.mahtep.polito.it/people/coordinators/savoldi_laura) ad Prof. [Valeria di Cosmo](http://www.mahtep.polito.it/people/coordinators/di_cosmo_valeria). For any communication related to this TEMOA version, please write to [matteo.nicoli@polito.it](mailto:matteo.nicoli@polito.it).
 
 The public model instances based on this TEMOA version are:
@@ -25,7 +25,7 @@ Below, the list of publications in which this version was used:
 
 
 ## Installation Guide
-This guide provides step-by-step instructions to install the required software for running the TEMOA energy system optimization model.
+This guide provides step-by-step instructions to install the required software for running the TEMOA energy system optimization model, assuming the user is eligible for requesting a Gurobi academic license.
 
 ### Step 1: Install Anaconda
 Anaconda is a Python distribution that simplifies package management and deployment.
@@ -75,7 +75,7 @@ A virtual environment ensures that dependencies are installed in an isolated env
 
 An alternative virtual environment is required to run TEMOA with stochastic optimization. The guide to install this environment and the necessary steps required to modify accordingly the TEMOA source code are located at:
 ```
-TEMOA/environments/temoa-stochastic
+..TEMOA/environments/temoa-stochastic
 ```
 
 ### Step 4: Install Gurobi and Register an Academic License
@@ -92,9 +92,9 @@ Gurobi is required to solve optimization models in TEMOA.
 6. If successful, Gurobi should now be ready to use.
 
 ### Step 5: Running a TEMOA Simulation
-To run a TEMOA simulation, the user must specify the settings in the configuration file located at:
+To run a TEMOA simulation, the user can customize the settings in the configuration file located at:
 ```
-TEMOA/temoa_model/config_sample
+../TEMOA/temoa_model/config_sample
 ```
 
 In the `config_sample` file, users can specify:
@@ -110,9 +110,13 @@ In the `config_sample` file, users can specify:
 
 To test that TEMOA is working correctly, users can optimize the `temoa_utopia.sqlite` database, which represents a simple model instance developed for testing purposes.
 
-After configuring the settings, navigate to the extracted TEMOA directory using the `cd` command:
+After customizing the settings, navigate to the extracted TEMOA directory using the `cd` command:
 ```sh
-cd ../TEMOA/
+cd ../TEMOA
+```
+Be sure the virtual enviornment is activated. If not, activate it with:
+```sh
+conda activate temoa
 ```
 TEMOA can be run using the following command:
 ```sh
