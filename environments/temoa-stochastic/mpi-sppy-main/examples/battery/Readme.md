@@ -1,1 +1,0 @@
-The battery example is not developed yet.
