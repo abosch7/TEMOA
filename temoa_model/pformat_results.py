@@ -170,6 +170,7 @@ def pformat_results ( pyomo_instance, pyomo_result, options ):
 
 	for r, p, s, d, i, t, v, o in m.V_FlowOut:
 		val_out = value( m.V_FlowOut[r, p, s, d, i, t, v, o] )
+
 		if abs(val_out) < epsilon: continue
 
 		svars['V_FlowOut'][r, p, s, d, i, t, v, o] = val_out
@@ -196,8 +197,8 @@ def pformat_results ( pyomo_instance, pyomo_result, options ):
 				emissions = emission_keys[r, i, t, v, o]
 				for e in emissions:
 					evalue = val_out * m.EmissionActivity[r, e, i, t, v, o]
-					svars[ 'V_EmissionActivityByPeriodAndProcess' ][r, p, e, t, v] += evalue	
-	
+					svars[ 'V_EmissionActivityByPeriodAndProcess' ][r, p, e, t, v] += evalue
+
 	for r, p, s, d, i, t, v, o in m.V_Curtailment:		
 		val = value( m.V_Curtailment[r, p, s, d, i, t, v, o] )
 		if abs(val) < epsilon: continue
@@ -244,12 +245,54 @@ def pformat_results ( pyomo_instance, pyomo_result, options ):
 		if abs(val) < epsilon: continue
 		svars['V_CapacityAvailableByPeriodAndTech'][r, p, t] = val
 
+	#MOO/MGPA
+	if (hasattr(options, 'moo_c') and options.moo_c) or (hasattr(options, 'mgpa') and options.mgpa):
+		for moo_f in m.V_Slack:
+			val = value(m.V_Slack[moo_f])
+			if abs(val) < epsilon:
+				svars['V_Slack'][moo_f] = 0
+			else:
+				svars['V_Slack'][moo_f] = val
+
+	##MOO
+	#if hasattr(options, 'moo_c') and options.moo_c:
+	#	val = value(m.V_Slack)
+	#	if abs(val) < epsilon:
+	#		svars['V_Slack'][r] = 0
+	#	else:
+	#		svars['V_Slack'][r] = val
+
+	#CostMOO
+	for r, p in m.V_Costs_rp:
+		val = value (m.V_Costs_rp[r, p])
+		if abs(val) < epsilon: continue
+		svars['V_Costs_rp'][r, p] = val
+
+	#EmissionsMOO
+	for r, p in m.V_Emissions_rp:
+		val = value (m.V_Emissions_rp[r, p])
+		if abs(val) < epsilon: continue
+		svars['V_Emissions_rp'][r, p] = val
+
+	#EnergySR
+	for r, p in m.V_EnergySupplyRisk:
+		val = value ( m.V_EnergySupplyRisk[r, p] )
+		if abs(val) < epsilon: continue
+		svars['V_EnergySupplyRisk'][r, p] = val
+
+	#MaterialSR
+	for r, p in m.V_MaterialSupplyRisk:
+		val = value ( m.V_MaterialSupplyRisk[r, p] )
+		if abs(val) < epsilon: continue
+		svars['V_MaterialSupplyRisk'][r, p] = val
+
+	#MaterialSR
 	for r, i, t, v in m.V_MatCons:
 		val = value ( m.V_MatCons[r, i, t, v] )
 		if abs(val) < epsilon: continue
 		svars['V_MatCons'][r, i, t, v] = val
 
-	# Calculate model costs:	
+	# Calculate model costs:
 	if hasattr(options, 'file_location') and os.path.join('temoa_model', 'config_sample_myopic') not in options.file_location: 
 		# This is a generic workaround.  Not sure how else to automatically discover 
 		# the objective name
@@ -330,7 +373,7 @@ def pformat_results ( pyomo_instance, pyomo_result, options ):
 		# assumption 3: Unlike other output tables in which Ri-Rj and Rj-Ri entries
 		# are allowed in the region column, for the Output_Costs table the region 
 		#to the right of the hyphen sign gets the costs.
-		for i in m.RegionalExchangeCapacityConstraint_rrtv:
+		for i in m.RegionalExchangeCapacityConstraint_rrtv.iterkeys():
 			reg_dir1  = i[0]+"-"+i[1]
 			reg_dir2 = i[1]+"-"+i[0]
 			tech = i[2]
@@ -423,15 +466,25 @@ def pformat_results ( pyomo_instance, pyomo_result, options ):
 	# -----------------------------------------------------------------
 
 	# Table dictionary below maps variable names to database table names
-	tables = { "V_FlowIn"   : "Output_VFlow_In",  \
-			   "V_FlowOut"  : "Output_VFlow_Out", \
-			   "V_Curtailment"  : "Output_Curtailment", \
-			   "V_Capacity" : "Output_V_Capacity",       \
-			   "V_CapacityAvailableByPeriodAndTech"   : "Output_CapacityByPeriodAndTech",  \
-			   "V_EmissionActivityByPeriodAndProcess" : "Output_Emissions", \
-			   "Objective"  : "Output_Objective", \
-			   "V_MatCons"  : "Output_VMat_Cons", \
-			   "Costs"      : "Output_Costs" 
+	tables = {"V_FlowIn"   : "Output_VFlow_In", \
+			  "V_FlowOut"  : "Output_VFlow_Out", \
+			  "V_Curtailment"  : "Output_Curtailment", \
+			  "V_Capacity" : "Output_V_Capacity", \
+			  "V_CapacityAvailableByPeriodAndTech"   : "Output_CapacityByPeriodAndTech", \
+			  "V_EmissionActivityByPeriodAndProcess" : "Output_Emissions", \
+			  "Objective"  : "Output_Objective", \
+			  #CostMOO
+			  "V_Costs_rp": "Output_TotalCosts", \
+			  #EmissionsMOO
+			  "V_Emissions_rp": "Output_TotalEmissions", \
+			  #EnergySR
+			  "V_EnergySupplyRisk": "Output_EnergySupplyRisk", \
+			  #MaterialSR
+			  "V_MaterialSupplyRisk": "Output_MaterialSupplyRisk", \
+			  "V_MatCons": "Output_VMat_Cons", \
+			  #MOO
+			  "V_Slack": "Output_VSlack", \
+			  "Costs"      : "Output_Costs"
 			   }
 
 	db_tables = ['time_periods', 'time_season', 'time_of_day', 'technologies', 'commodities',\
@@ -522,23 +575,58 @@ def pformat_results ( pyomo_instance, pyomo_result, options ):
 					if hasattr(options, 'file_location') and options.scenario == val[0] and os.path.join('temoa_model', 'config_sample_myopic') not in options.file_location:
 						cur.execute("DELETE FROM "+tables[table]+" \
 									WHERE scenario is '"+options.scenario+"'") 
-				if table == 'Objective' : # Only table without sector info
+				if table == 'Objective':
 					for key in svars[table].keys():
 						key_str = str(key) # only 1 row to write
 						key_str = key_str[1:-1] # Remove parentheses
 						cur.execute("INSERT INTO "+tables[table]+" \
 									VALUES('"+options.scenario+"',"+key_str+", \
 									"+str(svars[table][key])+");")
+				elif table == 'V_Costs_rp':
+					for key in svars[table].keys():
+						key_str = str(key)
+						key_str = key_str[1:-1]  # Remove parentheses
+						cur.execute("INSERT INTO " + tables[table] + " (regions, scenario, t_periods, total_costs) \
+											                 VALUES (?, ?, ?, ?);",
+									(key[0], options.scenario, key[1], svars[table][key]))
+				elif table == 'V_Emissions_rp':
+					for key in svars[table].keys():
+						key_str = str(key)
+						key_str = key_str[1:-1]  # Remove parentheses
+						cur.execute("INSERT INTO " + tables[table] + " (regions, scenario, t_periods, total_emissions) \
+											                 VALUES (?, ?, ?, ?);",
+									(key[0], options.scenario, key[1], svars[table][key]))
+				elif table == 'V_EnergySupplyRisk':
+					for key in svars[table].keys():
+						key_str = str(key)
+						key_str = key_str[1:-1]  # Remove parentheses
+						cur.execute("INSERT INTO " + tables[table] + " (regions, scenario, t_periods, energySR) \
+											                 VALUES (?, ?, ?, ?);",
+									(key[0], options.scenario, key[1], svars[table][key]))
+				elif table == 'V_MaterialSupplyRisk':
+					for key in svars[table].keys():
+						key_str = str(key)
+						key_str = key_str[1:-1]  # Remove parentheses
+						cur.execute("INSERT INTO " + tables[table] + " (regions, scenario, t_periods, materialSR) \
+											                 VALUES (?, ?, ?, ?);",
+									(key[0], options.scenario, key[1], svars[table][key]))
 				elif table == 'V_MatCons':
 					for key in svars[table].keys():
 						key_str = str(key)
-						#key_str = key_str[1:-1]  # Rimuovi le parentesi
+						#key_str = key_str[1:-1]  # Remove parentheses
 						cur.execute("INSERT INTO " + tables[table] + " (regions, scenario, material_comm, tech, vintage, vmat_cons) \
 					                 VALUES (?, ?, ?, ?, ?, ?);",
 									(key[0], options.scenario, key[1], key[2], key[3], svars[table][key]))
 						cur.execute("UPDATE " + tables[table] + " SET sector = \
 														(SELECT technologies.sector FROM technologies \
 														WHERE " + tables[table] + ".tech = technologies.tech);")
+				elif table == 'V_Slack':
+					for key in svars[table].keys():
+						key_str = str(key)
+						#key_str = key_str[1:-1]  # Remove parentheses
+						cur.execute("INSERT INTO " + tables[table] + " (scenario, moo_f, slack) \
+					                 VALUES (?, ?, ?);",
+									(options.scenario, key, svars[table][key]))
 				else : # First add 'NULL' for sector then update
 					for key in svars[table].keys() : # Need to loop over keys (rows)
 						key_str = str(key)
@@ -556,6 +644,7 @@ def pformat_results ( pyomo_instance, pyomo_result, options ):
 					cur.execute("UPDATE "+tables[table]+" SET sector = \
 								(SELECT technologies.sector FROM technologies \
 								WHERE "+tables[table]+".tech = technologies.tech);")
+
 
 		#WRITE DUALS RESULTS
 		if (options.saveDUALS):
@@ -685,37 +774,37 @@ def dat_to_db(input_file, output_schema, run_partial=False):
 
 	#Fill time_periods
 	for i in parsed_data['time_exist']:
-		if i == '': 
+		if i is '': 
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO time_periods VALUES("+i+", 'e');")
 	for i in parsed_data['time_future']:
-		if i == '':
+		if i is '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO time_periods VALUES("+i+", 'f');")
 	
 	#Fill time_season
 	for i in parsed_data['time_season']:
-		if i == '':
+		if i is '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO time_season VALUES('"+i+"');")
 	
 	#Fill time_of_day
 	for i in parsed_data['time_of_day']:
-		if i == '':
+		if i is '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO time_of_day VALUES('"+i+"');")
 	
 	#Fill technologies
 	for i in parsed_data['tech_baseload']:
-		if i == '':
+		if i is '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO technologies VALUES('"+i+"', 'pb', '', '');")
 	for i in parsed_data['tech_storage']:
-		if i == '':
+		if i is '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO technologies VALUES('"+i+"', 'ph', '', '');")		
 	for i in parsed_data['tech_production']:
-		if i == '':
+		if i is '':
 			continue
 		if i in parsed_data['tech_storage']:
 			continue
@@ -723,28 +812,28 @@ def dat_to_db(input_file, output_schema, run_partial=False):
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO technologies VALUES('"+i+"', 'p', '', '');")
 	for i in parsed_data['tech_resource']:
-		if i == '':
+		if i is '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO technologies VALUES('"+i+"', 'r', '', '');")
 	
 	#Fill commodities
 	for i in parsed_data['commodity_demand']:
-		if i == '':
+		if i is '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO commodities VALUES('"+i+"', 'd', '');")
 	for i in parsed_data['commodity_physical']:
-		if i == '':
+		if i is '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO commodities VALUES('"+i+"', 'p', '');")
 	for i in parsed_data['commodity_emissions']:
-		if i == '':
+		if i is '':
 			continue
 		output_schema.execute("INSERT OR REPLACE INTO commodities VALUES('"+i+"', 'e', '');")
 
 		
 	#Fill ExistingCapacity
 	for i in parsed_data['ExistingCapacity']:
-		if i == '':
+		if i is '':
 			continue
 		row_data = re.split(" ", i)
 		row_data.append('')
@@ -753,7 +842,7 @@ def dat_to_db(input_file, output_schema, run_partial=False):
 	
 	#Fill Efficiency
 	for i in parsed_data['Efficiency']:
-		if i == '':
+		if i is '':
 			continue
 		row_data = re.split(" ", i)
 		row_data.append('')
@@ -761,7 +850,7 @@ def dat_to_db(input_file, output_schema, run_partial=False):
 		
 	#Fill LifetimeTech
 	for i in parsed_data['LifetimeTech']:
-		if i == '':
+		if i is '':
 			continue
 		row_data = re.split(" ", i)
 		row_data.append('')
@@ -769,7 +858,7 @@ def dat_to_db(input_file, output_schema, run_partial=False):
 	
 	#Fill LifetimeProcess
 	for i in parsed_data['LifetimeProcess']:
-		if i == '':
+		if i is '':
 			continue
 		row_data = re.split(" ", i)
 		row_data.append('')
@@ -777,11 +866,11 @@ def dat_to_db(input_file, output_schema, run_partial=False):
 	
 	#Fill EmissionActivity
 	for i in parsed_data['EmissionActivity']:
-		if i == '':
+		if i is '':
 			continue
 		row_data = re.split(" ", i)
 		row_data.append('')
-		if len(row_data) == 7:
+		if len(row_data) is 7:
 			row_data.append('')
 		output_schema.execute("INSERT OR REPLACE INTO EmissionActivity VALUES(?, ?, ?, ?, ?, ?, ?, ?);", row_data)
 			

@@ -23,18 +23,21 @@ from pyomo.environ import *
 from temoa_rules import TotalCost_rule
 import numpy
 
-def MGAObjective_rule ( M, mga_weight ):
+# (c) Calculate near Pareto optimal solutions
+# f1_slacked: w*x - s1*c/o(f1) - s2*c/o(f2) (in case of minimization)
+def MGPAObjective_rule ( M, moo_f1, moo_f2, mga_weight, moo_c, moo_of1, moo_of2 ):
 
 	objective = 0
-	#print(mga_weight)
 
 	for t in M.V_ActivityByTech:
 		if t in mga_weight:
 			objective += mga_weight[t] * M.V_ActivityByTech[t]
 	
+	objective += (- M.V_Slack[moo_f1] * moo_c/(10**moo_of1) - M.V_Slack[moo_f2] * moo_c/(10**moo_of2))
+	
 	return objective
 
-def MGAWeight_rule ( M, mga_method, mga_weight ):
+def MGPAWeight_rule ( M, mga_method, mga_weight ):
 
 	#   The version below weights each technology by its previous cumulative
 	#   activity. However, different sectors may be tracked in different units and 
@@ -84,14 +87,44 @@ def MGAWeight_rule ( M, mga_method, mga_weight ):
 				mga_weight[t] = numpy.random.uniform(-1, 1)
 		return mga_weight
 
-def MGASlackedObjective_rule ( M, prev_cost, mga_slack ):
+def MGPASlackedObjective_rule ( M, moo_f, f_pareto, mga_slack ):
 	# It is important that this function name *not* match its constraint name
 	# plus '_rule', else Pyomo will attempt to be too smart.  That is, at the
 	# first implementation, the associated constraint name is
 	# 'PreviousSlackedObjective', for which Pyomo searches the namespace for
-	# 'PreviousSlackedObjectiveMGA_rule'.  We decidedly do not want Pyomo
+	# 'PreviousSlackedObjective_rule'.  We decidedly do not want Pyomo
 	# trying to call this function because it is not aware of the second arg.
-	slackcost = (1 + mga_slack) * prev_cost 
-	oldobjective = TotalCost_rule( M )
-	expr = oldobjective <= slackcost
+	
+	if moo_f == 'cost':
+		oldobjective =  sum(M.V_Costs_rp[r, p] for p in M.time_optimize for r in M.regions)
+	elif moo_f == 'emissions':
+		oldobjective =  sum(M.V_Emissions_rp[r, p] for p in M.time_optimize for r in M.regions)
+	elif moo_f == 'energySR':
+		oldobjective =  sum(M.V_EnergySupplyRisk[r, p] for p in M.time_optimize for r in M.regions)
+	elif moo_f == 'materialSR':
+		oldobjective =  sum(M.V_MaterialSupplyRisk[r, p] for p in M.time_optimize for r in M.regions)
+	
+	expr = oldobjective + M.V_Slack[moo_f] == (1 + mga_slack) * f_pareto
+
+	return expr
+
+def MGPAMinObjective_rule ( M, moo_f, f_pareto, mga_slack ):
+	# It is important that this function name *not* match its constraint name
+	# plus '_rule', else Pyomo will attempt to be too smart.  That is, at the
+	# first implementation, the associated constraint name is
+	# 'PreviousSlackedObjective', for which Pyomo searches the namespace for
+	# 'PreviousSlackedObjective_rule'.  We decidedly do not want Pyomo
+	# trying to call this function because it is not aware of the second arg.
+	
+	if moo_f == 'cost':
+		oldobjective =  sum(M.V_Costs_rp[r, p] for p in M.time_optimize for r in M.regions)
+	elif moo_f == 'emissions':
+		oldobjective =  sum(M.V_Emissions_rp[r, p] for p in M.time_optimize for r in M.regions)
+	elif moo_f == 'energySR':
+		oldobjective =  sum(M.V_EnergySupplyRisk[r, p] for p in M.time_optimize for r in M.regions)
+	elif moo_f == 'materialSR':
+		oldobjective =  sum(M.V_MaterialSupplyRisk[r, p] for p in M.time_optimize for r in M.regions)
+	
+	expr = oldobjective >= (1 - mga_slack) * f_pareto
+
 	return expr

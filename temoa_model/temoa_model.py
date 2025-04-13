@@ -66,6 +66,9 @@ def temoa_create_model(name="Temoa"):
     M.tech_resource = Set()
     M.tech_production = Set()
     M.tech_all = M.tech_resource | M.tech_production
+    M.tech_imports = Set(within=M.tech_all)
+    M.tech_exports = Set(within=M.tech_all)
+    M.tech_domestic = Set(within=M.tech_all)
     M.tech_baseload = Set(within=M.tech_all)
     M.tech_storage = Set(within=M.tech_all)
     M.tech_reserve = Set(within=M.tech_all)
@@ -83,6 +86,7 @@ def temoa_create_model(name="Temoa"):
     # Define commodity-related sets
     M.commodity_demand = Set()
     M.commodity_emissions = Set()
+    M.commodities_e_moo = Set(within=M.commodity_emissions) # Used to define the emission commodities contributing to the emissions objective function
     M.commodity_physical = Set()
     M.commodity_material = Set()
     M.commodity_carrier = M.commodity_physical | M.commodity_demand | M.commodity_material
@@ -90,12 +94,10 @@ def temoa_create_model(name="Temoa"):
 
     # Define sets for MGA weighting
     M.tech_mga = Set(within=M.tech_all)
-    M.tech_electric = Set(within=M.tech_all)
-    M.tech_transport = Set(within=M.tech_all)
-    M.tech_industrial = Set(within=M.tech_all)
-    M.tech_commercial = Set(within=M.tech_all)
-    M.tech_residential = Set(within=M.tech_all)
-    M.tech_PowerPlants = Set(within=M.tech_all)
+    M.tech_ELC = Set(within=M.tech_all)
+    M.tech_STG = Set(within=M.tech_all)
+    M.tech_CCUS = Set(within=M.tech_all)
+    M.tech_UPS = Set(within=M.tech_all)
 
     # ---------------------------------------------------------------
     # Define parameters.
@@ -161,9 +163,9 @@ def temoa_create_model(name="Temoa"):
     M.LifetimeLoanProcess = Param(M.LifetimeLoanProcess_rtv, mutable=True)
     M.initialize_Lifetimes = BuildAction(rule=CreateLifetimes)
 
-    M.TechInputSplit = Param(M.regions, M.time_optimize, M.commodity_physical, M.tech_all)
-    M.TechInputSplitAverage = Param(M.regions, M.time_optimize, M.commodity_physical, M.tech_variable)
-    M.TechOutputSplit = Param(M.regions, M.time_optimize, M.tech_all, M.commodity_carrier)
+    M.TechInputSplit = Param(M.RegionalIndices, M.time_optimize, M.commodity_physical, M.tech_all)
+    M.TechInputSplitAverage = Param(M.RegionalIndices, M.time_optimize, M.commodity_physical, M.tech_variable)
+    M.TechOutputSplit = Param(M.RegionalIndices, M.time_optimize, M.tech_all, M.commodity_carrier)
 
     # The method below creates a series of helper functions that are used to
     # perform the sparse matrix of indexing for the parameters, variables, and
@@ -212,6 +214,7 @@ def temoa_create_model(name="Temoa"):
     # Define parameters associated with user-defined constraints
     M.MinCapacity = Param(M.RegionalIndices, M.time_optimize, M.tech_all)
     M.MaxCapacity = Param(M.RegionalIndices, M.time_optimize, M.tech_all)
+    M.DiscreteCapacity = Param(M.tech_all)
     M.MaxResource = Param(M.RegionalIndices, M.tech_all)
     M.MaxActivity = Param(M.RegionalIndices, M.time_optimize, M.tech_all)
     M.MinActivity = Param(M.RegionalIndices, M.time_optimize, M.tech_all)
@@ -245,6 +248,11 @@ def temoa_create_model(name="Temoa"):
 
     M.MyopicBaseyear = Param(default=0, mutable=True)
 
+    M.MultiObjectiveSlacked = Param(['cost', 'emissions'], within=Reals, default=0)
+
+    # Define parameters associated with energy and material supply risk assessment
+    M.EnergyCommodityConcentrationIndex = Param(M.RegionalIndices, M.commodity_physical, M.time_optimize, default=0)
+    M.TechnologyMaterialSupplyRisk = Param(M.RegionalIndices, M.tech_all, M.vintage_optimize, default=0)
     M.MaterialIntensity = Param(M.RegionalIndices, M.commodity_material, M.tech_all, M.vintage_optimize, default=0)
     M.MaxMaterialReserve = Param(M.RegionalIndices, M.tech_all)
 
@@ -280,6 +288,7 @@ def temoa_create_model(name="Temoa"):
 
     M.CapacityVar_rtv = Set(dimen=3, initialize=CapacityVariableIndices)
     M.V_Capacity = Var(M.CapacityVar_rtv, domain=NonNegativeReals)
+    M.V_DiscreteCapacity = Var(M.CapacityVar_rtv, domain=Integers)
 
     M.CapacityAvailableVar_rpt = Set(
         dimen=3, initialize=CapacityAvailableVariableIndices
@@ -288,6 +297,12 @@ def temoa_create_model(name="Temoa"):
         M.CapacityAvailableVar_rpt, domain=NonNegativeReals
     )
 
+    # Define variable for multi-objective optimization
+    M.V_Costs_rp = Var(M.RegionalIndices, M.time_optimize, domain=NonNegativeReals, initialize=0)
+    M.V_Emissions_rp = Var(M.RegionalIndices, M.time_optimize, domain=NonNegativeReals, initialize=0)
+    M.V_ImportShare = Var(M.RegionalIndices, M.time_optimize, M.commodity_physical, domain=NonNegativeReals, initialize=0)
+    M.V_EnergySupplyRisk = Var(M.RegionalIndices, M.time_optimize, domain=NonNegativeReals, initialize=0)
+    M.V_MaterialSupplyRisk = Var(M.RegionalIndices, M.time_optimize, domain=NonNegativeReals, initialize=0)
     M.V_MatCons = Var(M.RegionalIndices, M.commodity_material, M.tech_all, M.vintage_optimize, domain=NonNegativeReals, initialize=0)
 
     # ---------------------------------------------------------------
@@ -349,15 +364,36 @@ def temoa_create_model(name="Temoa"):
     )
     M.CommodityBalanceAnnualConstraint = Constraint(
         M.CommodityBalanceAnnualConstraint_rpc, rule=CommodityBalanceAnnual_Constraint
-    )    
+    )
 
+    M.TotalCostConstraint = Constraint(M.regions, M.time_optimize, rule=TotalCost_Constraint)
+    M.CostSlackedConstraint = Constraint(rule=CostSlacked_Constraint)
+
+    M.TotalEmissionsConstraint = Constraint(M.regions, M.time_optimize, rule=TotalEmissions_Constraint)
+    M.EmissionsSlackedConstraint = Constraint(rule=EmissionsSlacked_Constraint)
+
+    M.ImportShareConstraint_rpc = Set(
+        dimen=3, initialize=ImportShareConstraintIndices
+    )
+    M.ImportShareConstraint = Constraint(
+        M.ImportShareConstraint_rpc, rule=ImportShare_Constraint
+    )
+    M.EnergySupplyRiskConstraint = Constraint(
+        M.regions, M.time_optimize, rule=EnergySupplyRisk_Constraint
+    )
+
+    M.MaterialSupplyRiskConstraint = Constraint(
+        M.regions, M.time_optimize, rule=MaterialSupplyRisk_Constraint
+    )
     M.MaterialConsumptionConstraint = Constraint(
         M.regions, M.commodity_material, M.tech_all, M.vintage_optimize, rule=MaterialConsumption_Constraint
     )
     M.MaterialBalanceConstraint = Constraint(
         M.regions, M.time_optimize, M.commodity_material, rule=MaterialBalance_Constraint
     )
-
+    # M.MaxMaterialReserveConstraint = Constraint(
+    #     M.regions, M.tech_all, rule=MaxMaterialReserve_Constraint
+    # )
     M.MaxMaterialReserveConstraint_rt = Set(
         dimen=2, initialize=lambda M: M.MaxMaterialReserve.sparse_iterkeys()
     )
@@ -535,6 +571,10 @@ def temoa_create_model(name="Temoa"):
     )
     M.MaxCapacityConstraint = Constraint(
         M.MaxCapacityConstraint_rpt, rule=MaxCapacity_Constraint
+    )
+
+    M.DiscreteConstraint = Constraint(
+        M.CapacityVar_rtv, rule=DiscreteCapacity_Constraint
     )
 
     M.MaxResourceConstraint_rt = Set(

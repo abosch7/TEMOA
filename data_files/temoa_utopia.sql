@@ -70,6 +70,26 @@ INSERT INTO "technologies" VALUES ('SRE','p','supply',' crude oil processor','pe
 INSERT INTO "technologies" VALUES ('TXD','p','transport',' diesel powered vehicles','diesel');
 INSERT INTO "technologies" VALUES ('TXE','p','transport',' electric powered vehicles','electric');
 INSERT INTO "technologies" VALUES ('TXG','p','transport',' gasoline powered vehicles','gasoline');
+CREATE TABLE "tech_mga" (
+	"tech"	text,
+	"notes"	text,
+	PRIMARY KEY("tech")
+);
+CREATE TABLE "tech_imports" (
+	"tech"	text,
+	"notes"	text,
+	PRIMARY KEY("tech")
+);
+CREATE TABLE "tech_exports" (
+	"tech"	text,
+	"notes"	text,
+	PRIMARY KEY("tech")
+);
+CREATE TABLE "tech_domestic" (
+	"tech"	text,
+	"notes"	text,
+	PRIMARY KEY("tech")
+);
 CREATE TABLE "tech_reserve" (
 	"tech"	text,
 	"notes"	text,
@@ -148,6 +168,39 @@ INSERT INTO "commodities" VALUES ('nox','e','#NOX emissions');
 INSERT INTO "commodities" VALUES ('RH','d','# residential heating');
 INSERT INTO "commodities" VALUES ('RL','d','# residential lighting');
 INSERT INTO "commodities" VALUES ('TX','d','# transportation');
+CREATE TABLE "commodities_e_moo" (
+	"comm_name"	text,
+	"notes"		text,
+	PRIMARY KEY("comm_name"),
+	FOREIGN KEY("comm_name") REFERENCES "commodities"("comm_name")
+);
+CREATE TABLE "MultiObjectiveSlacked" (
+	"objective_name"		text,
+	"objective_slack"		real,
+	"notes"					text
+);
+CREATE TABLE "EnergyCommodityConcentrationIndex" (
+    "regions"                   text,
+    "comm_name"                 text,
+    "periods"                   integer,
+    "concentration_index"       real,
+    "concentration_index_units" text,
+    "concentration_index_notes" text,
+	PRIMARY KEY("regions","comm_name","periods"),
+	FOREIGN KEY("comm_name") REFERENCES "commodities"("comm_name"),
+	FOREIGN KEY("periods") REFERENCES "time_periods"("t_periods")
+);
+CREATE TABLE "TechnologyMaterialSupplyRisk" (
+	"regions"	        text,
+	"tech"	            text,
+	"vintage"	        integer,
+	"tech_msr"	        real,
+	"tech_msr_units"	text,
+	"tech_msr_notes"	text,
+	PRIMARY KEY("regions","tech","vintage"),
+	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods")
+);
 CREATE TABLE "TechOutputSplit" (
 	"regions"	TEXT,
 	"periods"	integer,
@@ -206,154 +259,9 @@ CREATE TABLE "PlanningReserveMargin" (
 	PRIMARY KEY(regions),
 	FOREIGN KEY("regions") REFERENCES regions
 );
-CREATE TABLE "Output_V_Capacity" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"capacity"	real,
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	PRIMARY KEY("regions","scenario","tech","vintage")
-);
-CREATE TABLE "Output_VFlow_Out" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"t_periods"	integer,
-	"t_season"	text,
-	"t_day"	text,
-	"input_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_comm"	text,
-	"vflow_out"	real,
-	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm")
-);
-CREATE TABLE "Output_VFlow_In" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"t_periods"	integer,
-	"t_season"	text,
-	"t_day"	text,
-	"input_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_comm"	text,
-	"vflow_in"	real,
-	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm")
-);
-CREATE TABLE "Output_Objective" (
-	"scenario"	text,
-	"objective_name"	text,
-	"total_system_cost"	real
-);
-CREATE TABLE "Output_Emissions" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"t_periods"	integer,
-	"emissions_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"emissions"	real,
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	FOREIGN KEY("emissions_comm") REFERENCES "EmissionActivity"("emis_comm"),
-	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
-	PRIMARY KEY("regions","scenario","t_periods","emissions_comm","tech","vintage")
-);
-CREATE TABLE "Output_Curtailment" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"t_periods"	integer,
-	"t_season"	text,
-	"t_day"	text,
-	"input_comm"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_comm"	text,
-	"curtailment"	real,
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
-	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
-	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm")
-);
-CREATE TABLE "Output_Costs" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"output_name"	text,
-	"tech"	text,
-	"vintage"	integer,
-	"output_cost"	real,
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
-	PRIMARY KEY("regions","scenario","output_name","tech","vintage")
-);
-CREATE TABLE "Output_Duals" (
-	"constraint_name"	text,
-	"scenario"	text,
-	"dual"	real,
-	PRIMARY KEY("constraint_name","scenario")
-);
-CREATE TABLE "Output_CapacityByPeriodAndTech" (
-	"regions"	text,
-	"scenario"	text,
-	"sector"	text,
-	"t_periods"	integer,
-	"tech"	text,
-	"capacity"	real,
-	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
-	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
-	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
-	PRIMARY KEY("regions","scenario","t_periods","tech")
-);
 CREATE TABLE "MyopicBaseyear" (
 	"year"	real,
 	"notes"	text	
-);
-CREATE TABLE "MinGenGroupWeight" (
-	"regions"	text,
-	"tech"	text,
-	"group_name"	text,
-	"act_fraction"	REAL,
-	"tech_desc"	text,
-	PRIMARY KEY("tech","group_name","regions")
-);
-CREATE TABLE "MinGenGroupTarget" (
-	"regions"	text,
-	"periods"	integer,
-	"group_name"	text,
-	"min_act_g"	real,
-	"notes"	text,
-	PRIMARY KEY("periods","group_name","regions")
 );
 CREATE TABLE "MinCapacity" (
 	"regions"	text,
@@ -1011,6 +919,135 @@ CREATE TABLE "LinkedTechs" (
 	FOREIGN KEY("emis_comm") REFERENCES "commodities"("comm_name"),
 	PRIMARY KEY("primary_region","primary_tech", "emis_comm")
 );
+CREATE TABLE "Output_V_Capacity" (
+	"regions"	text,
+	"scenario"	text,
+	"sector"	text,
+	"tech"	text,
+	"vintage"	integer,
+	"capacity"	real,
+	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+	PRIMARY KEY("regions","scenario","tech","vintage")
+);
+CREATE TABLE "Output_VFlow_Out" (
+	"regions"	text,
+	"scenario"	text,
+	"sector"	text,
+	"t_periods"	integer,
+	"t_season"	text,
+	"t_day"	text,
+	"input_comm"	text,
+	"tech"	text,
+	"vintage"	integer,
+	"output_comm"	text,
+	"vflow_out"	real,
+	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
+	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
+	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day"),
+	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm")
+);
+CREATE TABLE "Output_VFlow_In" (
+	"regions"	text,
+	"scenario"	text,
+	"sector"	text,
+	"t_periods"	integer,
+	"t_season"	text,
+	"t_day"	text,
+	"input_comm"	text,
+	"tech"	text,
+	"vintage"	integer,
+	"output_comm"	text,
+	"vflow_in"	real,
+	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day"),
+	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
+	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
+	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm")
+);
+CREATE TABLE "Output_Objective" (
+	"scenario"	text,
+	"objective_name"	text,
+	"total_system_cost"	real
+);
+CREATE TABLE "Output_Emissions" (
+	"regions"	text,
+	"scenario"	text,
+	"sector"	text,
+	"t_periods"	integer,
+	"emissions_comm"	text,
+	"tech"	text,
+	"vintage"	integer,
+	"emissions"	real,
+	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+	FOREIGN KEY("emissions_comm") REFERENCES "EmissionActivity"("emis_comm"),
+	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+	PRIMARY KEY("regions","scenario","t_periods","emissions_comm","tech","vintage")
+);
+CREATE TABLE "Output_Curtailment" (
+	"regions"	text,
+	"scenario"	text,
+	"sector"	text,
+	"t_periods"	integer,
+	"t_season"	text,
+	"t_day"	text,
+	"input_comm"	text,
+	"tech"	text,
+	"vintage"	integer,
+	"output_comm"	text,
+	"curtailment"	real,
+	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+	FOREIGN KEY("output_comm") REFERENCES "commodities"("comm_name"),
+	FOREIGN KEY("input_comm") REFERENCES "commodities"("comm_name"),
+	FOREIGN KEY("t_season") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("t_day") REFERENCES "time_of_day"("t_day"),
+	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+	PRIMARY KEY("regions","scenario","t_periods","t_season","t_day","input_comm","tech","vintage","output_comm")
+);
+CREATE TABLE "Output_Costs" (
+	"regions"	text,
+	"scenario"	text,
+	"sector"	text,
+	"output_name"	text,
+	"tech"	text,
+	"vintage"	integer,
+	"output_cost"	real,
+	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
+	PRIMARY KEY("regions","scenario","output_name","tech","vintage")
+);
+CREATE TABLE "Output_Duals" (
+	"constraint_name"	text,
+	"scenario"	text,
+	"dual"	real,
+	PRIMARY KEY("constraint_name","scenario")
+);
+CREATE TABLE "Output_CapacityByPeriodAndTech" (
+	"regions"	text,
+	"scenario"	text,
+	"sector"	text,
+	"t_periods"	integer,
+	"tech"	text,
+	"capacity"	real,
+	FOREIGN KEY("tech") REFERENCES "technologies"("tech"),
+	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
+	PRIMARY KEY("regions","scenario","t_periods","tech")
+);
 CREATE TABLE "Output_VMat_Cons" (
 	"regions"	text,
 	"scenario"	text,
@@ -1023,5 +1060,47 @@ CREATE TABLE "Output_VMat_Cons" (
 	FOREIGN KEY("vintage") REFERENCES "time_periods"("t_periods"),
 	FOREIGN KEY("sector") REFERENCES "sector_labels"("sector"),
 	FOREIGN KEY("material_comm") REFERENCES "commodities"("comm_name")
+);
+CREATE TABLE "Output_MaterialSupplyRisk" (
+    "regions"   text,
+	"scenario"	text,
+	"t_periods" integer,
+	"materialSR"	real,
+	PRIMARY KEY("regions","scenario","t_periods"),
+	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("regions") REFERENCES "regions"("regions")
+);
+CREATE TABLE "Output_EnergySupplyRisk" (
+    "regions"   text,
+	"scenario"	text,
+	"t_periods" integer,
+	"energySR"	real,
+	PRIMARY KEY("regions","scenario","t_periods"),
+	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("regions") REFERENCES "regions"("regions")
+);
+CREATE TABLE "Output_TotalCosts" (
+    "regions"   text,
+	"scenario"	text,
+	"t_periods" integer,
+	"total_costs"	real,
+	PRIMARY KEY("regions","scenario","t_periods"),
+	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("regions") REFERENCES "regions"("regions")
+);
+CREATE TABLE "Output_TotalEmissions" (
+    "regions"   text,
+	"scenario"	text,
+	"t_periods" integer,
+	"total_emissions"	real,
+	PRIMARY KEY("regions","scenario","t_periods"),
+	FOREIGN KEY("t_periods") REFERENCES "time_periods"("t_periods"),
+	FOREIGN KEY("regions") REFERENCES "regions"("regions")
+);
+CREATE TABLE "Output_VSlack" (
+	"scenario"	text,
+	"moo_f"		text,
+	"slack"		real,
+	PRIMARY KEY("scenario","moo_f")
 );
 COMMIT;

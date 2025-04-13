@@ -31,7 +31,7 @@ def db_2_dat(ifile, ofile, options):
 	import getopt
 
 	def write_tech_mga(f):
-		cur.execute("SELECT tech FROM technologies")
+		cur.execute("SELECT tech FROM tech_mga")
 		f.write("set tech_mga :=\n")
 		for row in cur:
 			f.write(row[0] + '\n')
@@ -107,76 +107,84 @@ def db_2_dat(ifile, ofile, options):
 
 	#[set or param, table_name, DAT fieldname, flag (if any), index (where to insert '#')
 	table_list = [
-		['set',  'time_periods',              'time_exist',          'e',            0],
-		['set',  'time_periods',              'time_future',         'f',            0],
-		['set',  'time_season',               '',                    '',             0],
-		['set',  'time_of_day',               '',                    '',             0],
-		['set',  'regions',        	          '',                    '',             0],
-		['set',  'tech_curtailment',          '',                    '',             0],
-		['set',  'tech_flex',          		  '',                    '',             0],
-		['set',  'tech_reserve',              '',                    '',             0],
-		['set',  'technologies',              'tech_resource',       'r',            0],
-		['set',  'technologies',              'tech_production',    ['p','pb','ps'], 0],
-		['set',  'technologies',              'tech_baseload',       'pb',           0],
-		['set',  'technologies',              'tech_storage',  		 'ps',           0],
-		['set',  'tech_ramping',              '',                    '',             0],
-		['set',  'tech_exchange',             '',                    '',             0],
-		['set',  'commodities',               'commodity_physical',  'p',            0],
-		['set',  'commodities',               'commodity_material',  'm',            0],
-		['set',  'commodities',               'commodity_emissions', 'e',            0],
-		['set',  'commodities',               'commodity_demand',    'd',            0],
-		['set',  'tech_groups',               '',                    '',             0],
-		['set',  'tech_annual',               '',                    '',             0],
-		['set',  'tech_variable',             '',                    '',             0],
-		['set',  'groups',                    '',                    '',             0],
-		['param','TechGroupWeight',           '',                    '',             2],
-		['param','MinActivityGroup',          '',                    '',             3],
-		['param','MaxActivityGroup',          '',                    '',             3],
-		['param','MinCapacityGroup',          '',                    '',             3],
-		['param','MaxCapacityGroup',          '',                    '',             3],
-		['param','MinInputGroup',             '',                    '',             4],
-		['param','MaxInputGroup',             '',                    '',             4],
-		['param','MinOutputGroup',            '',                    '',             4],
-		['param','MaxOutputGroup',            '',                    '',             4],
-		['param','LinkedTechs',               '',                    '',             3],
-		['param','SegFrac',                   '',                    '',             2],
-		['param','DemandSpecificDistribution','',                    '',             4],
-		['param','CapacityToActivity',        '',                    '',             2],
-		['param','PlanningReserveMargin',     '',                    '',             2],
-		['param','GlobalDiscountRate',        '',                    '',             0],
-		['param','MyopicBaseyear',            '',                    '',             0],
-		['param','DiscountRate',              '',                    '',             3],
-		['param','EmissionActivity',          '',                    '',             6],
-		['param','EmissionLimit',             '',                    '',             3],
-		['param','Demand',                    '',                    '',             3],
-		['param','TechOutputSplit',           '',                    '',             4],
-		['param','TechInputSplit',            '',                    '',             4],
-		['param','TechInputSplitAverage',     '',                    '',             4],
-		['param','MinCapacity',               '',                    '',             3],
-		['param','MaxCapacity',               '',                    '',             3],
-		['param','MaxActivity',               '',                    '',             3],
-		['param','MinActivity',               '',                    '',             3],
-		['param','MaxResource',               '',                    '',             2],
-		['param','GrowthRateMax',             '',                    '',             2],
-		['param','GrowthRateSeed',            '',                    '',             2],
-		['param','LifetimeTech',              '',                    '',             2],
-		['param','LifetimeProcess',           '',                    '',             3],
-		['param','LifetimeLoanTech',          '',                    '',             2],
-		['param','CapacityFactor',            '',                    '',             3],
-		['param','CapacityFactorTech',        '',                    '',             4],
-		['param','CapacityFactorProcess',     '',                    '',             5],
-		['param','Efficiency',                '',                    '',             5],
-		['param','ExistingCapacity',          '',                    '',             3],
-		['param','CostInvest',                '',                    '',             3],
-		['param','CostFixed',                 '',                    '',             4],
-		['param','CostVariable',              '',                    '',             4],
-		['param','CapacityCredit',            '',                    '',             4],
-		['param','RampUp',                    '',                    '',             2],
-		['param','RampDown',                  '',                    '',             2],
-		['param','StorageInitFrac',           '',                    '',             3],
-		['param','StorageDuration',           '',                    '',             2],
-	    ['param','MaterialIntensity',         '',                    '',             4],
-	    ['param','MaxMaterialReserve',        '',                    '',             2]]
+		['set',  'time_periods',						'time_exist',          'e',            0],
+		['set',  'time_periods',						'time_future',         'f',            0],
+		['set',  'time_season',               			'',                    '',             0],
+		['set',  'time_of_day',               			'',                    '',             0],
+		['set',  'regions',        	          			'',                    '',             0],
+		['set',  'tech_curtailment',          			'',                    '',             0],
+		['set',  'tech_flex',          		  			'',                    '',             0],
+		['set',  'tech_reserve',              			'',                    '',             0],
+		['set',  'technologies',              			'tech_resource',       'r',            0],
+		['set',  'technologies',              			'tech_production',    ['p','pb','ps'], 0],
+		['set',  'technologies',              			'tech_baseload',       'pb',           0],
+		['set',  'technologies',              			'tech_storage',  	   'ps',           0],
+		['set',  'tech_ramping',              			'',                    '',             0],
+		['set',  'tech_exchange',             			'',                    '',             0],
+		['set',  'tech_imports',              			'',                    '',             0],
+		['set',  'tech_exports',              			'',                    '',             0],
+		['set',  'tech_domestic',             			'',                    '',             0],
+		['set',  'commodities',               			'commodity_physical',  'p',            0],
+		['set',  'commodities',               			'commodity_material',  'm',            0],
+		['set',  'commodities',               			'commodity_emissions', 'e',            0],
+		['set',  'commodities',               			'commodity_demand',    'd',            0],
+		['set',  'commodities_e_moo',                   '',                    '',             0],
+		['set',  'tech_groups',               			'',                    '',             0],
+		['set',  'tech_annual',               			'',                    '',             0],
+		['set',  'tech_variable',             			'',                    '',             0],
+		['set',  'groups',                    			'',                    '',             0],
+		['param','TechGroupWeight',           			'',                    '',             2],
+		['param','MinActivityGroup',          			'',                    '',             3],
+		['param','MaxActivityGroup',          			'',                    '',             3],
+		['param','MinCapacityGroup',          			'',                    '',             3],
+		['param','MaxCapacityGroup',          			'',                    '',             3],
+		['param','MinInputGroup',             			'',                    '',             4],
+		['param','MaxInputGroup',             			'',                    '',             4],
+		['param','MinOutputGroup',            			'',                    '',             4],
+		['param','MaxOutputGroup',            			'',                    '',             4],
+		['param','LinkedTechs',               			'',                    '',             3],
+		['param','SegFrac',                   			'',                    '',             2],
+		['param','DemandSpecificDistribution',			'',                    '',             4],
+		['param','CapacityToActivity',        			'',                    '',             2],
+		['param','PlanningReserveMargin',     			'',                    '',             2],
+		['param','GlobalDiscountRate',        			'',                    '',             0],
+		['param','MyopicBaseyear',            			'',                    '',             0],
+		['param','DiscountRate',              			'',                    '',             3],
+		['param','EmissionActivity',          			'',                    '',             6],
+		['param','EmissionLimit',             			'',                    '',             3],
+		['param','Demand',                    			'',                    '',             3],
+		['param','TechOutputSplit',           			'',                    '',             4],
+		['param','TechInputSplit',            			'',                    '',             4],
+		['param','TechInputSplitAverage',     			'',                    '',             4],
+		['param','MinCapacity',               			'',                    '',             3],
+		['param','MaxCapacity',               			'',                    '',             3],
+		['param','DiscreteCapacity',                    '',                    '',             1],
+		['param','MaxActivity',               			'',                    '',             3],
+		['param','MinActivity',               			'',                    '',             3],
+		['param','MaxResource',               			'',                    '',             2],
+		['param','GrowthRateMax',             			'',                    '',             2],
+		['param','GrowthRateSeed',            			'',                    '',             2],
+		['param','LifetimeTech',              			'',                    '',             2],
+		['param','LifetimeProcess',           			'',                    '',             3],
+		['param','LifetimeLoanTech',          			'',                    '',             2],
+		['param','CapacityFactor',            			'',                    '',             3],
+		['param','CapacityFactorTech',        			'',                    '',             4],
+		['param','CapacityFactorProcess',     			'',                    '',             5],
+		['param','Efficiency',                			'',                    '',             5],
+		['param','ExistingCapacity',          			'',                    '',             3],
+		['param','CostInvest',                			'',                    '',             3],
+		['param','CostFixed',                 			'',                    '',             4],
+		['param','CostVariable',              			'',                    '',             4],
+		['param','CapacityCredit',            			'',                    '',             4],
+		['param','RampUp',                    			'',                    '',             2],
+		['param','RampDown',                  			'',                    '',             2],
+		['param','StorageInitFrac',           			'',                    '',             3],
+		['param','StorageDuration',           			'',                    '',             2],
+		['param','MultiObjectiveSlacked',	            '',               	   '',             1],
+		['param','EnergyCommodityConcentrationIndex',	'',               	   '',             3],
+		['param','TechnologyMaterialSupplyRisk',		'',                    '',             3],
+	    ['param','MaterialIntensity',         			'',                    '',             4],
+	    ['param','MaxMaterialReserve',        			'',                    '',             2]]
 
 	with open(ofile, 'w') as f:
 		f.write('data ;\n\n')
@@ -192,9 +200,13 @@ def db_2_dat(ifile, ofile, options):
 		for table in table_list:
 			if table[1] in table_exist:
 				query_table(table, f)
-		if options.mga_weight == 'integer':
+		if options.mga_method == 'integer' or options.mga_method == 'random':
 			write_tech_mga(f)
-		if options.mga_weight == 'normalized':
+		if options.mga_method == 'normalized':
+			write_tech_sector(f)
+		if options.mgpa_method == 'integer' or options.mgpa_method == 'random':
+			write_tech_mga(f)
+		if options.mgpa_method == 'normalized':
 			write_tech_sector(f)
 
 		# Making sure the database is empty from the begining for a myopic solve
@@ -216,7 +228,9 @@ def db_2_dat(ifile, ofile, options):
 
 class TemoaConfig( object ):
 	states = (
-	('mga', 'exclusive'),
+	('mga',  'exclusive'),
+	('moo',  'exclusive'),
+	('mgpa', 'exclusive'),
 	)
 
 	tokens = (
@@ -234,11 +248,23 @@ class TemoaConfig( object ):
 		'keep_myopic_databases'
 		'saveDUALS'
 		'saveTEXTFILE',
-		'mgaslack',
-		'mgaiter',
 		'path_to_data',
 		'path_to_logs',
-		'mgaweight'
+		'mgaslack',		# MGA slack
+		'mgaiter',		# MGA iterations
+		'mgaweight',	# MGA weighting method
+		'moof1',		# MOO f1
+		'moof2',		# MOO f2
+		'mooc', 		# MOO c parameter
+		'mooncaps',		# MOO number of caps,
+		'mgpaf1', 		# MGPA f1
+		'mgpaf2', 		# MGPA f2
+		'mgpac', 		# MGPA c parameter
+		'mgpancaps', 	# MGPA number of caps
+		'mgpaslack1', 	# MGPA slack1
+		'mgpaslack2', 	# MGPA slack2
+		'mgpaiter', 	# MGPA iterations
+		'mgpamethod' 	# MGPA weighting method
 	)
 
 	t_ANY_ignore  = '[ \t]'
@@ -251,8 +277,12 @@ class TemoaConfig( object ):
 			import Queue as queue
 
 		self.__error          = list()
-		self.__mga_todo       = queue.Queue()
-		self.__mga_done       = queue.Queue()
+		self.__mga_todo       = queue.Queue()  # MGA
+		self.__mga_done       = queue.Queue()  # MGA
+		self.__moo_todo       = queue.Queue()  # MOO
+		self.__moo_done       = queue.Queue()  # MOO
+		self.__mgpa_todo       = queue.Queue() # MGPA
+		self.__mgpa_done       = queue.Queue() # MGPA
 
 		self.file_location    = None
 		self.dot_dat          = list() # Use Kevin's name.
@@ -269,9 +299,21 @@ class TemoaConfig( object ):
 		self.neos             = False
 		self.generateSolverLP = False
 		self.keepPyomoLP      = False
-		self.mga              = None # mga slack value
-		self.mga_iter         = None
-		self.mga_weight       = None
+		self.mga_slack        = None # MGA slack value
+		self.mga_iter         = None # MGA iterations
+		self.mga_method       = None # MGA weighting method
+		self.moo_f1           = None # MOO f1
+		self.moo_f2           = None # MOO f2
+		self.moo_c            = None # MOO c parameter
+		self.moo_ncaps        = None # MOO number of caps
+		self.mgpa_f1          = None # MGPA f1
+		self.mgpa_f2          = None # MGPA f2
+		self.mgpa_c           = None # MGPA c parameter
+		self.mgpa_ncaps       = None # MGPA number of caps
+		self.mgpa_slack1      = None # MGPA slack value for f1
+		self.mgpa_slack2      = None # MGPA slack value for f2
+		self.mgpa_iter        = None # MGPA iterations
+		self.mgpa_method      = None # MGPA weighting method
 
 		# To keep consistent with Kevin's argumetn parser, will be removed in the future.
 		self.graph_format     = None
@@ -292,7 +334,7 @@ class TemoaConfig( object ):
 
 	def __repr__(self):
 		width = 25
-		spacer = '\n' + '-'*width + '\n'
+		spacer = '-'*width + '\n'
 		msg = spacer
 		msg += '{:>{}s}: {}\n'.format('Config file', width, self.file_location)
 		for i in self.dot_dat:
@@ -314,11 +356,28 @@ class TemoaConfig( object ):
 		msg += '{:>{}s}: {}\n'.format('Selected solver status', width, self.solver)
 		msg += '{:>{}s}: {}\n'.format('Solver LP write status', width, self.generateSolverLP)
 		msg += '{:>{}s}: {}\n'.format('Pyomo LP write status', width, self.keepPyomoLP)
+		if self.mga_slack != None:
+			msg += spacer
+			msg += '{:>{}s}: {}\n'.format('MGA slack value', width, self.mga_slack)
+			msg += '{:>{}s}: {}\n'.format('MGA # of iterations', width, self.mga_iter)
+			msg += '{:>{}s}: {}\n'.format('MGA weighting method', width, self.mga_method)
+		if self.moo_c != None:
+			msg += spacer
+			msg += '{:>{}s}: {}\n'.format('MOO f1', width, self.moo_f1)
+			msg += '{:>{}s}: {}\n'.format('MOO f2', width, self.moo_f2)
+			msg += '{:>{}s}: {}\n'.format('MOO c parameter', width, self.moo_c)
+			msg += '{:>{}s}: {}\n'.format('MOO # of caps', width, self.moo_ncaps)
+		if self.mgpa_c != None:
+			msg += spacer
+			msg += '{:>{}s}: {}\n'.format('MGPA f1', width, self.mgpa_f1)
+			msg += '{:>{}s}: {}\n'.format('MGPA f2', width, self.mgpa_f2)
+			msg += '{:>{}s}: {}\n'.format('MGPA c parameter', width, self.mgpa_c)
+			msg += '{:>{}s}: {}\n'.format('MGPA # of caps', width, self.mgpa_ncaps)
+			msg += '{:>{}s}: {}\n'.format('MGPA slack1 value', width, self.mgpa_slack1)
+			msg += '{:>{}s}: {}\n'.format('MGPA slack2 value', width, self.mgpa_slack2)
+			msg += '{:>{}s}: {}\n'.format('MGPA # of iterations', width, self.mgpa_iter)
+			msg += '{:>{}s}: {}\n'.format('MGPA weighting method', width, self.mgpa_method)
 		msg += spacer
-		msg += '{:>{}s}: {}\n'.format('MGA slack value', width, self.mga)
-		msg += '{:>{}s}: {}\n'.format('MGA # of iterations', width, self.mga_iter)
-		msg += '{:>{}s}: {}\n'.format('MGA weighting method', width, self.mga_weight)
-		msg += '**NOTE: If you are performing MGA runs, navigate to the DAT file and make any modifications to the MGA sets before proceeding.'
 		return msg
 
 	def t_ANY_COMMENT(self, t):
@@ -396,17 +455,85 @@ class TemoaConfig( object ):
 
 	def t_mga_mgaslack(self, t):
 		r'slack[\s\=]+[\.\d]+'
-		self.mga = float(t.value.replace('=', ' ').split()[1])
+		self.mga_slack = float(t.value.replace('=', ' ').split()[1])
 
 	def t_mga_mgaiter(self, t):
 		r'iteration[\s\=]+[\d]+'
 		self.mga_iter = int(t.value.replace('=', ' ').split()[1])
 
-	def t_mga_mgaweight(self, t):
-		r'weight[\s\=]+(integer|normalized|distance)\b'
-		self.mga_weight = t.value.replace('=', ' ').split()[1]
+	def t_mga_mgamethod(self, t):
+		r'method[\s\=]+(integer|normalized|random)\b'
+		self.mga_method = t.value.replace('=', ' ').split()[1]
 
 	def t_mga_end(self, t):
+		r'\}'
+		t.lexer.pop_state()
+		t.lexer.level -= 1
+
+	def t_begin_moo(self, t): #MOO begin
+		r'--moo[\s\=]+\{'
+		t.lexer.push_state('moo')
+		t.lexer.level = 1
+
+	def t_moo_moof1(self, t): #MOO f1
+		r'f1[\s\=]+(cost|emissions|energySR|materialSR)\b'
+		self.moo_f1 = t.value.replace('=', ' ').split()[1]
+
+	def t_moo_moof2(self, t): #MOO f2
+		r'f2[\s\=]+(cost|emissions|energySR|materialSR)\b'
+		self.moo_f2 = t.value.replace('=', ' ').split()[1]
+
+	def t_moo_mooc(self, t): #MOO c parameter
+		r'c[\s\=]+[\.\d]+'
+		self.moo_c = float(t.value.replace('=', ' ').split()[1])
+
+	def t_moo_mooncaps(self, t): #MOO number of caps
+		r'ncaps[\s\=]+[\d]+'
+		self.moo_ncaps = int(t.value.replace('=', ' ').split()[1])
+
+	def t_moo_end(self, t): #MOO end
+		r'\}'
+		t.lexer.pop_state()
+		t.lexer.level -= 1
+
+	def t_begin_mgpa(self, t): #MGPA begin
+		r'--mgpa[\s\=]+\{'
+		t.lexer.push_state('mgpa')
+		t.lexer.level = 1
+
+	def t_mgpa_mgpaf1(self, t): #MGPA f1
+		r'f1[\s\=]+(cost|emissions|energySR|materialSR)\b'
+		self.mgpa_f1 = t.value.replace('=', ' ').split()[1]
+
+	def t_mgpa_mgpaf2(self, t): #MGPA f2
+		r'f2[\s\=]+(cost|emissions|energySR|materialSR)\b'
+		self.mgpa_f2 = t.value.replace('=', ' ').split()[1]
+
+	def t_mgpa_mgpac(self, t): #MGPA c parameter
+		r'c[\s\=]+[\.\d]+'
+		self.mgpa_c = float(t.value.replace('=', ' ').split()[1])
+
+	def t_mgpa_mgpancaps(self, t): #MGPA number of caps
+		r'ncaps[\s\=]+[\d]+'
+		self.mgpa_ncaps = int(t.value.replace('=', ' ').split()[1])
+
+	def t_mgpa_mgpaslack1(self, t): #MGPA slack1
+		r'slack1[\s\=]+[\.\d]+'
+		self.mgpa_slack1 = float(t.value.replace('=', ' ').split()[1])
+
+	def t_mgpa_mgpaslack2(self, t): #MGPA slack2
+		r'slack2[\s\=]+[\.\d]+'
+		self.mgpa_slack2 = float(t.value.replace('=', ' ').split()[1])
+
+	def t_mgpa_mgpaiter(self, t): #MGPA iterations
+		r'iteration[\s\=]+[\d]+'
+		self.mgpa_iter = int(t.value.replace('=', ' ').split()[1])
+
+	def t_mgpa_mgpamethod(self, t): #MGPA weighting method
+		r'method[\s\=]+(integer|normalized|random)\b'
+		self.mgpa_method = t.value.replace('=', ' ').split()[1]
+
+	def t_mgpa_end(self, t): #MGPA end
 		r'\}'
 		t.lexer.pop_state()
 		t.lexer.level -= 1
@@ -432,6 +559,22 @@ class TemoaConfig( object ):
 			self.scenario = self.__mga_todo.get()
 			return True
 		else:
+			return False
+
+	def next_moo(self): #MOO
+		if not self.__moo_todo.empty(): # If todo is not empty
+			self.__moo_done.put(self.scenario) # Put the current scenario to done
+			self.scenario = self.__moo_todo.get() # Assign the next todo scenario to scenario (in config_sample)
+			return True
+		else: # If there are no further scenarios to process
+			return False
+
+	def next_mgpa(self): #MGPA
+		if not self.__mgpa_todo.empty(): # If todo is not empty
+			self.__mgpa_done.put(self.scenario) # Put the current scenario to done
+			self.scenario = self.__mgpa_todo.get() # Assign the next todo scenario to scenario (in config_sample)
+			return True
+		else: # If there are no further scenarios to process
 			return False
 
 	def build(self,**kwargs):
@@ -503,6 +646,17 @@ class TemoaConfig( object ):
 			for i in range(self.mga_iter):
 				self.__mga_todo.put(self.scenario + '_mga_' + str(i))
 
+		if self.moo_ncaps: #MOO if moo_ncaps is not zero
+			for i in range(self.moo_ncaps):
+				self.__moo_todo.put(self.scenario + '_moo_' + str(i)) # Populate todo with scenarios
+
+		if self.mgpa_ncaps: #MGPA if mgpa_ncaps is not zero
+			for i in range(self.mgpa_ncaps):
+				self.__mgpa_todo.put(self.scenario + '_moo_' + str(i)) # Populate todo with scenarios
+				if self.mgpa_iter:
+					for j in range(self.mgpa_iter):
+						self.__mgpa_todo.put(self.scenario + '_moo_' + str(i) + '_mga_' + str(j)) # Populate todo with scenarios
+
 		f = open(os.devnull, 'w');
 		sys.stdout = f # Suppress the original DB_to_DAT.py output
 
@@ -518,4 +672,4 @@ class TemoaConfig( object ):
 		f.close()
 		sys.stdout = sys.__stdout__
 		if counter > 0:
-			sys.stderr.write("\n{} .db DD file(s) converted\n".format(counter))
+			sys.stderr.write("\n{} .db DD file(s) converted\n\n".format(counter))

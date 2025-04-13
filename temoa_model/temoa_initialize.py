@@ -1075,6 +1075,23 @@ def CommodityBalanceConstraintIndices ( M ):
 
 	return indices
 
+#EnergySR
+def ImportShareConstraintIndices ( M ):
+	period_commodity_with_up = set( M.commodityUStreamProcess.keys() )
+	period_commodity_with_dn = set( M.commodityDStreamProcess.keys() )
+	period_commodity = period_commodity_with_up.intersection( period_commodity_with_dn )
+	indices = set(
+	  (r, p, o)
+
+	  for r, p, o in period_commodity #r in this line includes interregional transfer combinations (not needed).
+	  if r in M.regions # this line ensures only the regions are included.
+	  for t, v in M.commodityUStreamProcess[ r, p, o ]
+	  if (r, t) not in M.tech_storage
+	  if t in M.tech_imports or t in M.tech_exports or t in M.tech_domestic # Needed to ensure to have consistent indices between ImportShare_Constraint
+	) # and V_ImportShare, as well as for ImportReliance
+
+	return indices
+
 
 def CommodityBalanceAnnualConstraintIndices ( M ):
 	# Generate indices only for those commodities that are produced by
