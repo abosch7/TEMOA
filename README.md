@@ -105,7 +105,7 @@ In the `config_sample` file, users can specify:
 - **Optional settings**, including those necessary to run TEMOA with:
   - *MGA (Modeling to Generate Alternatives)*: Used to explore alternative solutions.
   - *MOO (Multi-Objective Optimization)*: Used for multi-objective optimization runs.
-  - *MGPA (Modeling to Generate near-Pareto-optimal Alternatives)*: Used to explore near-pareto optimal alternatives (it combines MGA with MOO).
+  - *MGPA (Modeling to Generate near-Pareto-optimal Alternatives)*: Used to explore near-pareto optimal alternatives (it combines MOO with MGA).
 
 
 To test that TEMOA is working correctly, users can optimize the `temoa_utopia.sqlite` database, which represents a simple model instance developed for testing purposes.

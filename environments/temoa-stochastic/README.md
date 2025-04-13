@@ -21,23 +21,23 @@ Ensure you have the following installed on your system:
    ```
 
 ### Step 2: Install Editable Packages
-Navigate to the following folders and run the installation command. Replace `<pyomo-main>`, `<pysp-main>` and `<mpi-sppy-main>` with the actual paths:
+Unzip `pyomo-main`, `pysp-main` and `mpi-sppy-main`. Navigate to the unzipped folders and run the installation command.
 
 1. 
    ```bash
-   cd <pyomo-main>
+   cd ../pyomo-main
    pip install -e .
    ```
 
 2. 
    ```bash
-   cd <pysp-main>
+   cd ../pysp-main
    pip install -e .
    ```
 
 3. 
    ```bash
-   cd <mpi-sppy-main>
+   cd ../mpi-sppy-main
    pip install -e .
    ```
 
@@ -53,13 +53,13 @@ Navigate to the following folders and run the installation command. Replace `<py
 3. Add or modify the following entries:
 
    ```yaml
-   --input = <path/ScenarioStructure.dat>
-   --output = <path/database.sqlite>
+   --input = ../ScenarioStructure.dat
+   --output = ../database.sqlite
    #--saveDUALS
    ```
 
-   - Replace `<path/ScenarioStructure.dat>` with the actual path to your `ScenarioStructure.dat` file.
-   - Replace `<path/database.sqlite>` with the desired path and filename for storing output data.
+   - Replace `../ScenarioStructure.dat` with the actual path to your `ScenarioStructure.dat` file.
+   - Replace `../database.sqlite` with the desired path and filename for storing output data.
    - Ensure the `saveDUALS` option is commented out as shown.
 
 ### Step 5: Run Your Model
