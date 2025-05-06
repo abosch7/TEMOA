@@ -2724,12 +2724,14 @@ The constraint is formulated as follows:
     out = sum(
         M.V_FlowOut[r, p, s, d, S_i, t, v, o]
         for S_i in M.ProcessInputsByOutput[r, p, t, v, o]
+        if (r, p, s, d, S_i, t, v, o) in M.V_FlowOut
     )
 
     total_out = sum(
       M.V_FlowOut[r, p, s, d, S_i, t, v, S_o]
       for S_i in M.processInputs[r, p, t, v]
       for S_o in M.ProcessOutputsByInput[r, p, t, v, S_i]
+      if (r, p, s, d, S_i, t, v, S_o) in M.V_FlowOut
     )
 
     expr = out >= M.TechOutputSplit[r, p, t, o] * total_out
@@ -2755,12 +2757,14 @@ output (i.e., members of the :math:`tech_annual` set) are considered.
     out = sum(
         M.V_FlowOutAnnual[r, p, S_i, t, v, o]
         for S_i in M.ProcessInputsByOutput[r, p, t, v, o]
+        if (r, p, S_i, t, v, o) in M.V_FlowOutAnnual
     )
 
     total_out = sum(
         M.V_FlowOutAnnual[r, p, S_i, t, v, S_o]
         for S_i in M.processInputs[r, p, t, v]
         for S_o in M.ProcessOutputsByInput[r, p, t, v, S_i]
+        if (r, p, S_i, t, v, S_o) in M.V_FlowOutAnnual
       )
 
     expr = out >= M.TechOutputSplit[r, p, t, o] * total_out
