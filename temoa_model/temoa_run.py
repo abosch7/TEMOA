@@ -789,12 +789,12 @@ def get_solvers():
 	if available_solvers:
 		if 'cplex' in available_solvers:
 			default_solver = 'cplex'
+		elif 'glpk' in available_solvers:
+			default_solver = 'glpk'
 		elif 'gurobi' in available_solvers:
 			default_solver = 'gurobi'
 		elif 'cbc' in available_solvers:
 			default_solver = 'cbc'
-		elif 'glpk' in available_solvers:
-			default_solver = 'glpk'
 		else:
 			default_solver = iter(available_solvers).next()
 	else:

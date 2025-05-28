@@ -8,11 +8,13 @@
 # Input File (Mandatory) 
 # Input can be a .sqlite or .dat file
 # Both relative path and absolute path are accepted
---input=data_files/temoa_utopia.sqlite
+--input= data_files/TEMOA-Piedmont/TEMOA_Piedmont.sqlite
+# data_files/TEMOA-Piedmont/TEMOA_Piedmont.sqlite
+# data_files/TEMOA-Base/temoa_utopia.sqlite
 
 # Output File (Mandatory)
 # The output file must be a existing .sqlite file
---output=data_files/temoa_utopia.sqlite
+--output=data_files/TEMOA-Piedmont/TEMOA_Piedmont.sqlite
 
 # Scenario Name (Mandatory) 
 # This scenario name is used to store results within the output .sqlite file
@@ -20,7 +22,7 @@
 
 # Path to folder containing input dataset (Mandatory)
 # This is the location where database files reside
---path_to_data=data_files
+--path_to_data=data_files/TEMOA-Piedmont
 
 # Solve Myopically (Optional)
 # Allows user to solve one model time period at a time, sequentially
@@ -44,7 +46,7 @@
 
 # Solver-related arguments (Optional)
 #--neos                            # Optional, specify if you want to use NEOS server to solve
---solver=gurobi                    # Optional, indicate the solver
+--solver=cbc                    # Optional, indicate the solver
 #--keep_pyomo_lp_file              # Optional, generate Pyomo-compatible LP file
 
 # Modeling-to-Generate Alternatives (Optional)
