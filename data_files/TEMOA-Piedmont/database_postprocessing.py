@@ -7,14 +7,14 @@ import multiprocessing
 processes = 1
 print_set = True
 toexcel_set = True
-excel_name = "database_postprocessing"
+excel_name = "scenario_name"
 
 # Input parameters to define the set of output to be postprocessed and their aggregation level
 
-file = []
+file = ["data_files/TEMOA-Piedmont/TEMOA_Piedmont.sqlite"]
 
-regions_list = []
-tech_list = []
+regions_list = ["PIE"]
+tech_list = ["AGR_FT_DST_E"]
 input_comm_list = []
 output_comm_list = []
 material_comm_list = []
@@ -32,7 +32,7 @@ result_set = {
     "Output_VFlow_In": False,
     "Output_VFlow_Out": False,
     "Output_VMat_Cons": False,
-    "Output_Emissions": False
+    "Output_Emissions": True
 }
 
 disaggregation = {
