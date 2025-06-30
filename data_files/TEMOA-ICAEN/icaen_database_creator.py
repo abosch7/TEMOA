@@ -6,7 +6,7 @@ sql_modules = ['TEMOA_ICAEN.sql']
 
 Deleting = True
 Reading = True
-Preprocessing = True
+Preprocessing = False
 Simplifying = False
 
 # Check if the SQLite database already exists and delete it
