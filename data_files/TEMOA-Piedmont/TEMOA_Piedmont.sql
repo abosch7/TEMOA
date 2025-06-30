@@ -11092,4 +11092,6 @@ CREATE TABLE "Output_VSlack" (
 	"slack"		real,
 	PRIMARY KEY("scenario","moo_f")
 );
+
+
 COMMIT;

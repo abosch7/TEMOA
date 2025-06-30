@@ -530,6 +530,8 @@ could satisfy both an end-use and internal system demand, then the output from
 :math:`\textbf{FO}` and :math:`\textbf{FOA}` would be double counted.
 """
     if (r,s,d,dem) not in M.DemandSpecificDistribution.sparse_keys():
+        print("holAaaaa")
+        print(M.DemandSpecificDistribution.sparse_keys())
         return Constraint.Skip
 
     supply = sum(

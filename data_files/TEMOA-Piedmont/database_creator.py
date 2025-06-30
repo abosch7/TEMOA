@@ -6,8 +6,8 @@ sql_modules = ['TEMOA_Piedmont.sql']
 
 Deleting = True
 Reading = True
-Preprocessing = True
-Simplifying = True
+Preprocessing = False
+Simplifying = False
 
 # Check if the SQLite database already exists and delete it
 
