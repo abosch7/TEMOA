@@ -6,14 +6,14 @@ CREATE TABLE parametres (
    'PARAM'    text,
    primary key('PARAM')
 );
-INSERT INTO parametres VALUES('PERHAB');   -- Persones per habitatge
-INSERT INTO parametres VALUES('PRESAP');   -- Presencia en àpats a habitatge 
-INSERT INTO parametres VALUES('CANVAP');   -- Canvis en els àpats
-INSERT INTO parametres VALUES('REND');     -- Rendiments tecnologies
-INSERT INTO parametres VALUES('REPFORM');  -- Repartiment de formes de tecnologia
-INSERT INTO parametres VALUES('CONGN');    -- Consum real GN per a cuina
+INSERT INTO parametres VALUES('PERHAB');   -- Persones per habitatge (t)
+INSERT INTO parametres VALUES('PRESAP');   -- Presencia en àpats a habitatge (t,s)
+INSERT INTO parametres VALUES('CANVAP');   -- Canvis en els àpats (t,s)
+INSERT INTO parametres VALUES('REND');     -- Rendiments tecnologies (t,f)
+INSERT INTO parametres VALUES('REPFORM');  -- Repartiment de formes de tecnologia (t,f)
+INSERT INTO parametres VALUES('CONGN');    -- Consum real GN per a cuina 
 
---  INTERVALS TEMPORALS DE LES DADES INTRODUIDES
+--  INTERVALS TEMPORALS DE LES DADES INTRODUIDES (t)
 CREATE TABLE time_slices (
    'T_SLICES'    integer,
    'PAST'        integer,
@@ -61,7 +61,7 @@ INSERT INTO time_slices VALUES (2048,0);
 INSERT INTO time_slices VALUES (2049,0);
 INSERT INTO time_slices VALUES (2050,0);
 
---  ESCENARIS 
+--  ESCENARIS (s)
 CREATE TABLE escenaris (
    'SCEN'  text,
    primary key('SCEN')
@@ -69,7 +69,7 @@ CREATE TABLE escenaris (
 INSERT INTO escenaris VALUES ('BASE');     -- Escenari base
 INSERT INTO escenaris VALUES ('APOSTA');   -- Escenari aposta
 
---  FONTS ENERGÈTIQUES
+--  FONTS ENERGÈTIQUES (f)
 CREATE TABLE productes (
    'PRODU'  text,
    primary key('PRODU')
