@@ -11,17 +11,19 @@ lifetime_default = 40
 print_i = 0
 
 print_status = True
+#Indicate wich tables should be interpolated/extrapolated
+tables = ["cuina"]
 
 #Indicate which parameter should be interpolated/extrapolated
 interpol_param = ['PRESAP', 'CANVAP', 'REPFORM', 'REND']
 
 #Indicate if you want to print the execution of the tables preprocessing
-print_outcome = {'data_selection':                    False,
-                 'cuina':                   False}
+print_outcome = {'cuina':                    False,
+                 'new table':                   False}
 
 #Indicate if you want to save the execution of the tables in the sqlite file
-save_tosql = {'data_selection':                    True,
-              'cuina':                   True}
+save_tosql = {'cuina':                    True,
+              'new table':                   True}
 
 time_periods = pd.read_sql("SELECT * FROM time_slices", conn)  
 time_periods = time_periods.sort_values(by=['T_SLICES'], ignore_index=True)
@@ -41,15 +43,11 @@ print("{:>62}".format('Output code of database_preprocessing.py:'))
 
 
 ## CUINA
-# Loading the cuina table from the .SQLite database
-cuina = pd.read_sql("SELECT * FROM cuina", conn)  
-
 start_time = time.time()
-## INTERPOLATING PRESAP
 
-# Loading the 'PRESAP' param from the .SQLite database and cuina table
+# Loading the cuina table from the .SQLite database
 data_selection = pd.read_sql("SELECT * FROM cuina", conn)
- 
+
 # Generating lists for every index in table
 cuina_PARAM = list()
 cuina_SCEN = list()
@@ -58,8 +56,6 @@ cuina_T_SLICES = list()
 cuina_VALUE = list()
 cuina_UNITATS = list()
 cuina_FLAG = list()
-
-#--------------------------------------------------------------------------------
 
 # Extracting the list of all indexes combinations for data_selections
 indexes = list()
@@ -143,13 +139,13 @@ new_data_selection = pd.DataFrame(
 
 new_data_selection = new_data_selection.sort_values(by=['PARAM', 'SCEN', 'T_SLICES', 'PRODU', 'VALUE', 'UNITATS', 'FLAG'], ignore_index=True)
 
-if save_tosql['data_selection']:
+if save_tosql['cuina']:
     new_data_selection.to_sql('cuina', conn, index=False, if_exists='replace')
 
-if print_outcome['data_selection']:
+if print_outcome['cuina']:
     pd.set_option('display.max_rows', len(data_selection))
     pd.set_option('display.max_columns', 10)
-    print("\ndata_selection DataFrame\n\n", data_selection[0:1000])
+    print("\ncuina DataFrame\n\n", data_selection[0:1000])
     pd.reset_option('display.max_rows')
     pd.reset_option('display.max_columns')
 
@@ -158,8 +154,13 @@ end_time = time.time()
 print_i = print_i + 1
 if print_status:
     print("{:>1} {:>2} {:>1} {:>2} {:>1} {:>50} {:>6} {:>1}".format('[', print_i, '/', len(print_outcome), ']',
-                                                                    'data_selection calculated and interpolated.',
+                                                                    'cuina table calculated and interpolated.',
                                                                     np.format_float_positional(abs(end_time - start_time), 2), 's'))
 
 #--------------------------------------------------------------------------------
 
+#Projecció
+
+q_gn = data_selection = pd.read_sql("SELECT * FROM cuina WHERE PARAM = 'CONGN'", conn).VALUE
+q_gn_kwh = (q_gn/0.086)*1000
+q_gn_kwh_mean = np.mean(q_gn_kwh)
