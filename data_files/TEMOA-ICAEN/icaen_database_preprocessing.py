@@ -18,12 +18,12 @@ tables = ["cuina"]
 interpol_param = ['PRESAP', 'CANVAP', 'REPFORM', 'REND']
 
 #Indicate if you want to print the execution of the tables preprocessing
-print_outcome = {'cuina':                    False,
-                 'new table':                   False}
+print_outcome = {'cuina':                    False
+                 }
 
 #Indicate if you want to save the execution of the tables in the sqlite file
-save_tosql = {'cuina':                    True,
-              'new table':                   True}
+save_tosql = {'cuina':                    True
+              }
 
 time_periods = pd.read_sql("SELECT * FROM time_slices", conn)  
 time_periods = time_periods.sort_values(by=['T_SLICES'], ignore_index=True)
@@ -36,6 +36,15 @@ time_periods_past = list(time_periods_past.T_SLICES)
 time_periods_future = pd.read_sql("SELECT * FROM time_slices WHERE PAST = 0", conn) 
 time_periods_future = time_periods_future.sort_values(by=['T_SLICES'], ignore_index=True)
 time_periods_future = list(time_periods_future.T_SLICES)
+
+escenaris = pd.read_sql("SELECT * FROM escenaris", conn)  
+escenaris = escenaris.sort_values(by=['SCEN'], ignore_index=True)
+escenaris = list(escenaris.SCEN)
+
+productes = pd.read_sql("SELECT * FROM productes", conn)  
+productes = productes.sort_values(by=['PRODU'], ignore_index=True)
+productes = list(productes.PRODU)
+
 
 
 print('_______________________________________________________________________')
@@ -121,7 +130,7 @@ for index_i in indexes:
                     cuina_T_SLICES.append(time_periods_i[j]) 
                     cuina_VALUE.append(data_selection_i.VALUE[i]) 
                     cuina_UNITATS.append(data_selection_i.UNITATS[i]) 
-                    cuina_FLAG.append(data_selection_i.FLAG[i]) 
+                    cuina_FLAG.append(1) 
 
 # Converting lists into a DataFrame
 new_data_selection = pd.DataFrame(
@@ -159,8 +168,28 @@ if print_status:
 
 #--------------------------------------------------------------------------------
 
-#Projecció
+#Projecció demanda sector cuina
 
-q_gn = data_selection = pd.read_sql("SELECT * FROM cuina WHERE PARAM = 'CONGN'", conn).VALUE
-q_gn_kwh = (q_gn/0.086)*1000
-q_gn_kwh_mean = np.mean(q_gn_kwh)
+cONGN = pd.read_sql("SELECT * FROM cuina WHERE PARAM = 'CONGN'", conn).VALUE
+pRESAP = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'PRESAP'", conn)
+cANVAP = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'CANVAP'", conn)
+rEND = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'REND'", conn)
+pERHAB = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'PERHAB'", conn)
+rEPFORM = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'REPFORM'", conn)
+
+
+q_GN = np.mean((cONGN/0.086)*1000)
+q_ind = list()
+q_hab = list()
+q_final = list()
+q_end = list()
+cuina_UNITATS = list()
+cuina_FLAG = list()
+
+
+
+
+for t in range(0, len(time_periods)):
+    for s in range(0,len(escenaris)):
+        for f in range(0,len(productes)):
+            a = 1
