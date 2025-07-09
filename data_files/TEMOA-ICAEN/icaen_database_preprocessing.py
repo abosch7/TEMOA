@@ -170,7 +170,7 @@ if print_status:
 
 #Projecció demanda sector cuina
 
-cONGN = pd.read_sql("SELECT * FROM cuina WHERE PARAM = 'CONGN'", conn).VALUE
+cONGN = pd.read_sql("SELECT *FROM cuina WHERE PARAM = 'CONGN'", conn).VALUE
 pRESAP = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'PRESAP'", conn)
 cANVAP = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'CANVAP'", conn)
 rEND = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'REND'", conn)
@@ -186,6 +186,17 @@ q_end = list()
 cuina_UNITATS = list()
 cuina_FLAG = list()
 
+# Extracting the list of all indexes combinations for data_selections
+indexes = list()
+for i in range(0, len(data_selection)):
+    if data_selection.PARAM[i] in interpol_param: # Only parameters specified in interpol_param list
+        index = str(data_selection.PARAM[i]) + str(data_selection.SCEN[i]) + str(data_selection.PRODU[i])
+        indexes.append(index)
+    else:
+        index = str('NONE')
+        indexes.append(index)
+data_selection['INDEXES'] = indexes
+indexes = list(dict.fromkeys(indexes))  # Removing duplicates
 
 
 
@@ -193,3 +204,135 @@ for t in range(0, len(time_periods)):
     for s in range(0,len(escenaris)):
         for f in range(0,len(productes)):
             a = 1
+
+
+
+
+
+# ##-----------------------------------------------------------------------------------------------------------------------------------
+# # Demand (from the previous database_preprocessing.py)
+
+# start_time = time.time()
+
+# cONGN = pd.read_sql("SELECT * FROM cuina WHERE PARAM = 'CONGN'", conn).VALUE
+# pRESAP = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'PRESAP'", conn)
+# cANVAP = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'CANVAP'", conn)
+# rEND = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'REND'", conn)
+# pERHAB = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'PERHAB'", conn)
+# rEPFORM = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'REPFORM'", conn)
+
+# results_cuina_VAR = list()
+# results_cuina_SCEN = list()
+# results_cuina_PRODU = list()
+# results_cuina_T_SLICES = list()
+# results_cuina_VALUE = list()
+# results_cuina_UNITATS = list()
+# results_cuina_FLAG = list()
+
+
+# for t in range(0, len(time_periods)):
+#     if t == 0:
+        
+#     else:
+
+#     for s in range(0,len(escenaris)):
+#         for f in range(0,len(productes)):
+#             a = 1
+
+
+# for i in range(0, len(Demand.demand_comm)):
+#     if Demand.periods[i] == base_year:
+#         regions.append(Demand.regions[i])
+#         periods.append(int(Demand.periods[i]))
+#         demand_comm.append(Demand.demand_comm[i])
+#         demand.append(Demand.demand[i])
+#         demand_units.append(Demand.demand_units[i])
+#         demand_notes.append(Demand.demand_notes[i])
+#         for j in range(0, len(Allocation.demand_comm)):
+#             if Allocation.demand_comm[j] == Demand.demand_comm[i]:
+#                 for k in range(0, len(Driver.periods)):
+#                     if Driver.driver_name[k] == Allocation.driver_name[j]:
+#                         for l in range(0, len(Elasticity.periods)):
+#                             if Elasticity.demand_comm[l] == Demand.demand_comm[i] and Driver.periods[k] == Elasticity.periods[l]:
+#                                 regions.append(Elasticity.regions[l])
+#                                 periods.append(int(Elasticity.periods[l]))
+#                                 demand_comm.append(Elasticity.demand_comm[l])
+#                                 if not Driver.periods[k] == base_year:
+#                                     demand.append(float(np.format_float_scientific(demand[len(demand) - 1] * (1 + (Driver.driver[k] / Driver.driver[k - 1] - 1) * Elasticity.elasticity[l]))))
+#                                     demand_units.append(demand_units[len(demand_units) - 1])
+#                                 demand_notes.append('')
+
+# Demand_1 = pd.DataFrame(
+#     {
+#         "regions": pd.Series(regions, dtype='str'),
+#         "periods": pd.Series(periods, dtype='int'),
+#         "demand_comm": pd.Series(demand_comm, dtype='str'),
+#         "demand": pd.Series(demand, dtype='float'),
+#         "demand_units": pd.Series(demand_units, dtype='str'),
+#         "demand_notes": pd.Series(demand_notes, dtype='str')
+#     }
+# )
+
+# for i in range(0, len(Demand_1)):
+#     if Demand_1.loc[i, lambda df: "periods"] == base_year:
+#         Demand_1 = Demand_1.drop(index=[i])
+# Demand_1 = Demand_1.reset_index(drop=True)
+
+# regions = list()
+# periods = list()
+# demand_comm = list()
+# demand = list()
+# demand_units = list()
+# demand_notes = list()
+# flag_delete = list()
+
+# for i in range(0, len(Demand.demand_comm)):
+#     if Demand.periods[i] != base_year:
+#         flag_check = 0
+#         for j in range(0, len(Demand_1)):
+#             if Demand.regions[i] == Demand_1.regions[j] and Demand.demand_comm[i] == Demand_1.demand_comm[j] and Demand.periods[i] == Demand_1.periods[j]:
+#                 flag_delete.append(j)
+#         regions.append(Demand.regions[i])
+#         periods.append(int(Demand.periods[i]))
+#         demand_comm.append(Demand.demand_comm[i])
+#         demand.append(Demand.demand[i])
+#         demand_units.append(Demand.demand_units[i])
+#         demand_notes.append(Demand.demand_notes[i])
+
+# Demand_1 = Demand_1.drop(flag_delete)
+# Demand_1 = Demand_1.reset_index(drop=True)
+
+# Demand_2 = pd.DataFrame(
+#     {
+#         "regions": pd.Series(regions, dtype='str'),
+#         "periods": pd.Series(periods, dtype='int'),
+#         "demand_comm": pd.Series(demand_comm, dtype='str'),
+#         "demand": pd.Series(demand, dtype='float'),
+#         "demand_units": pd.Series(demand_units, dtype='str'),
+#         "demand_notes": pd.Series(demand_notes, dtype='str')
+#     }
+# )
+
+# if len(Demand_1) != 0 or len(Demand_2) != 0:
+#     Demand = pd.merge(Demand_1, Demand_2, how='outer')
+#     Demand = Demand.sort_values(by=['regions', 'demand_comm', 'periods'], ignore_index=True)
+
+# if save_tosql['Demand']:
+#     Demand.to_sql('Demand', conn, index=False, if_exists='replace')
+
+# if print_outcome['Demand']:
+#     pd.set_option('display.max_rows', len(Demand))
+#     pd.set_option('display.max_columns', 10)
+#     print("\nDemand DataFrame\n\n", Demand)
+#     pd.reset_option('display.max_rows')
+#     pd.reset_option('display.max_columns')
+
+# end_time = time.time()
+
+# print_i = print_i + 1
+# if print_status:
+#     print("{:>1} {:>2} {:>1} {:>2} {:>1} {:>50} {:>6} {:>1}".format('[', print_i, '/', len(print_outcome), ']', 'Demand projected.',
+#                                                                     np.format_float_positional(abs(end_time - start_time), 2), 's'))
+
+
+# ##-----------------------------------------------------------------------------------------------------------------------------------
