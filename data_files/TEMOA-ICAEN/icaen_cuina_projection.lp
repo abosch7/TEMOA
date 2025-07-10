@@ -1,6 +1,6 @@
 \* Source Pyomo model name=icaen_cuina_projection *\
 
-max 
+min 
 FunObj:
 +1 q_end(2010_APOSTA_BIO)
 +1 q_end(2010_APOSTA_ELE)
@@ -338,12 +338,12 @@ c_e_cons_mean_GN_calc_:
 = 618.27000002462512
 
 c_e_cons_meal_GN_base_calc(2010_APOSTA)_:
--0.067811970966902974 q_GN
+-0.00055735866548139437 q_GN
 +1 q_ind(2010_APOSTA)
 = 0
 
 c_e_cons_meal_GN_base_calc(2010_BASE)_:
--0.067811970966902974 q_GN
+-0.00055735866548139437 q_GN
 +1 q_ind(2010_BASE)
 = 0
 
@@ -749,412 +749,412 @@ c_e_cons_meal_GN_calc(2050_BASE)_:
 
 c_e_cons_mean_usefull_energy_calc(2010_APOSTA)_:
 +1 q_hab(2010_APOSTA)
--12.534659999999999 q_ind(2010_APOSTA)
+-1525.0502999999999 q_ind(2010_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2010_BASE)_:
 +1 q_hab(2010_BASE)
--12.534659999999999 q_ind(2010_BASE)
+-1525.0502999999999 q_ind(2010_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2011_APOSTA)_:
 +1 q_hab(2011_APOSTA)
--12.534659999999999 q_ind(2011_APOSTA)
+-1525.0502999999999 q_ind(2011_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2011_BASE)_:
 +1 q_hab(2011_BASE)
--12.534659999999999 q_ind(2011_BASE)
+-1525.0502999999999 q_ind(2011_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2012_APOSTA)_:
 +1 q_hab(2012_APOSTA)
--12.519719999999998 q_ind(2012_APOSTA)
+-1523.2325999999998 q_ind(2012_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2012_BASE)_:
 +1 q_hab(2012_BASE)
--12.519719999999998 q_ind(2012_BASE)
+-1523.2325999999998 q_ind(2012_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2013_APOSTA)_:
 +1 q_hab(2013_APOSTA)
--12.499799999999997 q_ind(2013_APOSTA)
+-1520.8089999999997 q_ind(2013_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2013_BASE)_:
 +1 q_hab(2013_BASE)
--12.499799999999997 q_ind(2013_BASE)
+-1520.8089999999997 q_ind(2013_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2014_APOSTA)_:
 +1 q_hab(2014_APOSTA)
--12.484859999999999 q_ind(2014_APOSTA)
+-1518.9912999999999 q_ind(2014_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2014_BASE)_:
 +1 q_hab(2014_BASE)
--12.484859999999999 q_ind(2014_BASE)
+-1518.9912999999999 q_ind(2014_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2015_APOSTA)_:
 +1 q_hab(2015_APOSTA)
--12.469919999999998 q_ind(2015_APOSTA)
+-1517.1735999999999 q_ind(2015_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2015_BASE)_:
 +1 q_hab(2015_BASE)
--12.469919999999998 q_ind(2015_BASE)
+-1517.1735999999999 q_ind(2015_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2016_APOSTA)_:
 +1 q_hab(2016_APOSTA)
--12.454979999999999 q_ind(2016_APOSTA)
+-1515.3558999999998 q_ind(2016_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2016_BASE)_:
 +1 q_hab(2016_BASE)
--12.454979999999999 q_ind(2016_BASE)
+-1515.3558999999998 q_ind(2016_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2017_APOSTA)_:
 +1 q_hab(2017_APOSTA)
--12.44004 q_ind(2017_APOSTA)
+-1513.5382000000002 q_ind(2017_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2017_BASE)_:
 +1 q_hab(2017_BASE)
--12.44004 q_ind(2017_BASE)
+-1513.5382000000002 q_ind(2017_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2018_APOSTA)_:
 +1 q_hab(2018_APOSTA)
--12.40518 q_ind(2018_APOSTA)
+-1509.2969000000001 q_ind(2018_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2018_BASE)_:
 +1 q_hab(2018_BASE)
--12.40518 q_ind(2018_BASE)
+-1509.2969000000001 q_ind(2018_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2019_APOSTA)_:
 +1 q_hab(2019_APOSTA)
--12.37032 q_ind(2019_APOSTA)
+-1505.0555999999999 q_ind(2019_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2019_BASE)_:
 +1 q_hab(2019_BASE)
--12.37032 q_ind(2019_BASE)
+-1505.0555999999999 q_ind(2019_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2020_APOSTA)_:
 +1 q_hab(2020_APOSTA)
--12.335459999999998 q_ind(2020_APOSTA)
+-1500.8142999999998 q_ind(2020_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2020_BASE)_:
 +1 q_hab(2020_BASE)
--12.335459999999998 q_ind(2020_BASE)
+-1500.8142999999998 q_ind(2020_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2021_APOSTA)_:
 +1 q_hab(2021_APOSTA)
--12.271917599999998 q_ind(2021_APOSTA)
+-1493.0833079999998 q_ind(2021_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2021_BASE)_:
 +1 q_hab(2021_BASE)
--12.271917599999998 q_ind(2021_BASE)
+-1493.0833079999998 q_ind(2021_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2022_APOSTA)_:
 +1 q_hab(2022_APOSTA)
--12.213489600000001 q_ind(2022_APOSTA)
+-1485.9745680000001 q_ind(2022_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2022_BASE)_:
 +1 q_hab(2022_BASE)
--12.213489600000001 q_ind(2022_BASE)
+-1485.9745680000001 q_ind(2022_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2023_APOSTA)_:
 +1 q_hab(2023_APOSTA)
--12.150244800000001 q_ind(2023_APOSTA)
+-1478.2797840000001 q_ind(2023_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2023_BASE)_:
 +1 q_hab(2023_BASE)
--12.150244800000001 q_ind(2023_BASE)
+-1478.2797840000001 q_ind(2023_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2024_APOSTA)_:
 +1 q_hab(2024_APOSTA)
--12.087153600000001 q_ind(2024_APOSTA)
+-1470.6036879999999 q_ind(2024_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2024_BASE)_:
 +1 q_hab(2024_BASE)
--12.087153600000001 q_ind(2024_BASE)
+-1470.6036879999999 q_ind(2024_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2025_APOSTA)_:
 +1 q_hab(2025_APOSTA)
--12.019283999999997 q_ind(2025_APOSTA)
+-1462.3462199999997 q_ind(2025_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2025_BASE)_:
 +1 q_hab(2025_BASE)
--12.019283999999997 q_ind(2025_BASE)
+-1462.3462199999997 q_ind(2025_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2026_APOSTA)_:
 +1 q_hab(2026_APOSTA)
--11.951587199999999 q_ind(2026_APOSTA)
+-1454.1097759999998 q_ind(2026_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2026_BASE)_:
 +1 q_hab(2026_BASE)
--11.951587199999999 q_ind(2026_BASE)
+-1454.1097759999998 q_ind(2026_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2027_APOSTA)_:
 +1 q_hab(2027_APOSTA)
--11.888976 q_ind(2027_APOSTA)
+-1446.4920799999998 q_ind(2027_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2027_BASE)_:
 +1 q_hab(2027_BASE)
--11.888976 q_ind(2027_BASE)
+-1446.4920799999998 q_ind(2027_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2028_APOSTA)_:
 +1 q_hab(2028_APOSTA)
--11.8216152 q_ind(2028_APOSTA)
+-1438.2965159999999 q_ind(2028_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2028_BASE)_:
 +1 q_hab(2028_BASE)
--11.8216152 q_ind(2028_BASE)
+-1438.2965159999999 q_ind(2028_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2029_APOSTA)_:
 +1 q_hab(2029_APOSTA)
--11.759320800000001 q_ind(2029_APOSTA)
+-1430.7173640000001 q_ind(2029_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2029_BASE)_:
 +1 q_hab(2029_BASE)
--11.759320800000001 q_ind(2029_BASE)
+-1430.7173640000001 q_ind(2029_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2030_APOSTA)_:
 +1 q_hab(2030_APOSTA)
--11.697179999999999 q_ind(2030_APOSTA)
+-1423.1568999999997 q_ind(2030_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2030_BASE)_:
 +1 q_hab(2030_BASE)
--11.697179999999999 q_ind(2030_BASE)
+-1423.1568999999997 q_ind(2030_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2031_APOSTA)_:
 +1 q_hab(2031_APOSTA)
--11.643786 q_ind(2031_APOSTA)
+-1416.6606300000001 q_ind(2031_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2031_BASE)_:
 +1 q_hab(2031_BASE)
--11.643786 q_ind(2031_BASE)
+-1416.6606300000001 q_ind(2031_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2032_APOSTA)_:
 +1 q_hab(2032_APOSTA)
--11.595359999999999 q_ind(2032_APOSTA)
+-1410.7687999999998 q_ind(2032_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2032_BASE)_:
 +1 q_hab(2032_BASE)
--11.595359999999999 q_ind(2032_BASE)
+-1410.7687999999998 q_ind(2032_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2033_APOSTA)_:
 +1 q_hab(2033_APOSTA)
--11.547018 q_ind(2033_APOSTA)
+-1404.8871900000001 q_ind(2033_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2033_BASE)_:
 +1 q_hab(2033_BASE)
--11.547018 q_ind(2033_BASE)
+-1404.8871900000001 q_ind(2033_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2034_APOSTA)_:
 +1 q_hab(2034_APOSTA)
--11.498759999999999 q_ind(2034_APOSTA)
+-1399.0157999999999 q_ind(2034_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2034_BASE)_:
 +1 q_hab(2034_BASE)
--11.498759999999999 q_ind(2034_BASE)
+-1399.0157999999999 q_ind(2034_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2035_APOSTA)_:
 +1 q_hab(2035_APOSTA)
--11.450585999999998 q_ind(2035_APOSTA)
+-1393.1546299999998 q_ind(2035_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2035_BASE)_:
 +1 q_hab(2035_BASE)
--11.450585999999998 q_ind(2035_BASE)
+-1393.1546299999998 q_ind(2035_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2036_APOSTA)_:
 +1 q_hab(2036_APOSTA)
--11.407344000000002 q_ind(2036_APOSTA)
+-1387.8935200000003 q_ind(2036_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2036_BASE)_:
 +1 q_hab(2036_BASE)
--11.407344000000002 q_ind(2036_BASE)
+-1387.8935200000003 q_ind(2036_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2037_APOSTA)_:
 +1 q_hab(2037_APOSTA)
--11.359332000000002 q_ind(2037_APOSTA)
+-1382.05206 q_ind(2037_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2037_BASE)_:
 +1 q_hab(2037_BASE)
--11.359332000000002 q_ind(2037_BASE)
+-1382.05206 q_ind(2037_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2038_APOSTA)_:
 +1 q_hab(2038_APOSTA)
--11.316240000000001 q_ind(2038_APOSTA)
+-1376.8091999999999 q_ind(2038_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2038_BASE)_:
 +1 q_hab(2038_BASE)
--11.316240000000001 q_ind(2038_BASE)
+-1376.8091999999999 q_ind(2038_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2039_APOSTA)_:
 +1 q_hab(2039_APOSTA)
--11.27805 q_ind(2039_APOSTA)
+-1372.1627500000002 q_ind(2039_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2039_BASE)_:
 +1 q_hab(2039_BASE)
--11.27805 q_ind(2039_BASE)
+-1372.1627500000002 q_ind(2039_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2040_APOSTA)_:
 +1 q_hab(2040_APOSTA)
--11.23992 q_ind(2040_APOSTA)
+-1367.5236000000002 q_ind(2040_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2040_BASE)_:
 +1 q_hab(2040_BASE)
--11.23992 q_ind(2040_BASE)
+-1367.5236000000002 q_ind(2040_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2041_APOSTA)_:
 +1 q_hab(2041_APOSTA)
--11.210220000000001 q_ind(2041_APOSTA)
+-1363.9101000000003 q_ind(2041_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2041_BASE)_:
 +1 q_hab(2041_BASE)
--11.210220000000001 q_ind(2041_BASE)
+-1363.9101000000003 q_ind(2041_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2042_APOSTA)_:
 +1 q_hab(2042_APOSTA)
--11.180543999999999 q_ind(2042_APOSTA)
+-1360.29952 q_ind(2042_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2042_BASE)_:
 +1 q_hab(2042_BASE)
--11.180543999999999 q_ind(2042_BASE)
+-1360.29952 q_ind(2042_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2043_APOSTA)_:
 +1 q_hab(2043_APOSTA)
--11.155708800000001 q_ind(2043_APOSTA)
+-1357.277904 q_ind(2043_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2043_BASE)_:
 +1 q_hab(2043_BASE)
--11.155708800000001 q_ind(2043_BASE)
+-1357.277904 q_ind(2043_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2044_APOSTA)_:
 +1 q_hab(2044_APOSTA)
--11.135707200000001 q_ind(2044_APOSTA)
+-1354.844376 q_ind(2044_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2044_BASE)_:
 +1 q_hab(2044_BASE)
--11.135707200000001 q_ind(2044_BASE)
+-1354.844376 q_ind(2044_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2045_APOSTA)_:
 +1 q_hab(2045_APOSTA)
--11.115720000000001 q_ind(2045_APOSTA)
+-1352.4126000000001 q_ind(2045_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2045_BASE)_:
 +1 q_hab(2045_BASE)
--11.115720000000001 q_ind(2045_BASE)
+-1352.4126000000001 q_ind(2045_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2046_APOSTA)_:
 +1 q_hab(2046_APOSTA)
--11.095747200000002 q_ind(2046_APOSTA)
+-1349.9825760000003 q_ind(2046_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2046_BASE)_:
 +1 q_hab(2046_BASE)
--11.095747200000002 q_ind(2046_BASE)
+-1349.9825760000003 q_ind(2046_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2047_APOSTA)_:
 +1 q_hab(2047_APOSTA)
--11.080596 q_ind(2047_APOSTA)
+-1348.1391800000001 q_ind(2047_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2047_BASE)_:
 +1 q_hab(2047_BASE)
--11.080596 q_ind(2047_BASE)
+-1348.1391800000001 q_ind(2047_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2048_APOSTA)_:
 +1 q_hab(2048_APOSTA)
--11.070259199999999 q_ind(2048_APOSTA)
+-1346.8815360000001 q_ind(2048_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2048_BASE)_:
 +1 q_hab(2048_BASE)
--11.070259199999999 q_ind(2048_BASE)
+-1346.8815360000001 q_ind(2048_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2049_APOSTA)_:
 +1 q_hab(2049_APOSTA)
--11.059927200000001 q_ind(2049_APOSTA)
+-1345.624476 q_ind(2049_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2049_BASE)_:
 +1 q_hab(2049_BASE)
--11.059927200000001 q_ind(2049_BASE)
+-1345.624476 q_ind(2049_BASE)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2050_APOSTA)_:
 +1 q_hab(2050_APOSTA)
--11.054400000000001 q_ind(2050_APOSTA)
+-1344.952 q_ind(2050_APOSTA)
 = 0
 
 c_e_cons_mean_usefull_energy_calc(2050_BASE)_:
 +1 q_hab(2050_BASE)
--11.054400000000001 q_ind(2050_BASE)
+-1344.952 q_ind(2050_BASE)
 = 0
 
 c_e_cons_energy_products(2010_APOSTA_BIO)_:

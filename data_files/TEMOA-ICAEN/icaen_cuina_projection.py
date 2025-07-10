@@ -18,7 +18,7 @@ class icaen_cuina_projection:
     def __init__(self, name=None):
 
         # Scalar Parameters
-        self.DPY = 3          # Number of days per year
+        self.DPY = 365                  # Number of days per year
         self.NAP = 2                    # Number of meals per day per person
 
     def read(self, dir):
@@ -101,7 +101,6 @@ class icaen_cuina_projection:
         model.q_GN = py.Var(domain = py.NonNegativeReals)
         model.q_ind = py.Var(model.T, model.S, domain = py.NonNegativeReals)
         model.q_hab = py.Var(model.T, model.S, domain = py.NonNegativeReals)
-        model.q_final  = py.Var(model.T, model.S, domain = py.NonNegativeReals)
         model.q_end  = py.Var(model.T, model.S, model.P, domain = py.NonNegativeReals)
         
         ######### -- DEFINE CUINA MODEL DOMESTIC SECTOR -- #########
@@ -109,7 +108,7 @@ class icaen_cuina_projection:
         ## -- OBJECTIVE FUNCION CUINA MODEL DOMESTIC SECTOR -- ##
         def Fun_obj(model):
             return (sum(model.q_end[t,s,p] for t in model.T for s in model.S for p in model.P))
-        model.FunObj = py.Objective(rule = Fun_obj, sense = py.maximize)
+        model.FunObj = py.Objective(rule = Fun_obj, sense = py.minimize)
 
         ## -- CONSTRAINTS CUINA MODEL DOMESTIC SECTOR -- ##
         
@@ -151,33 +150,62 @@ class icaen_cuina_projection:
 
         print("Iniciant resolucio")
         
-        #opt = py.SolverFactory("solvers/scipampl")
         with Solver("gurobi") as solver:
              results = solver.solve(model, tee=True)
-        
 
         print("Resolucio OK")
-
-        OF_value = round(value(model.FunObj),4)
-        print(OF_value)
-
-        print(model.q_end.values)
 
     #     INICI ESCRIPTURA  
 
         print("Iniciant escriptura")
 
         data = []
+
+        # g_GN Variable
+        q_GN = py.value(model.q_GN)
+        data.append({
+            'VAR':"q_GN",
+            'T_SLICES': None,
+            'SCEN': None,
+            'PRODU': None,
+            'VALUE': q_GN,
+            'UNITATS': 'KWH/HABITATGE'
+                })
         for t in model.T:
             for s in model.S:
+
+                # q_ind variable
+                q_ind = py.value(model.q_ind[t, s])
+                data.append({
+                    'VAR':"q_ind",
+                    'T_SLICES': t,
+                    'SCEN': s,
+                    'PRODU': None,
+                    'VALUE': q_ind,
+                    'UNITATS': 'KWH/(PERSONA I APAT)'
+                })
+
+                # q_hab variable
+                q_hab = py.value(model.q_hab[t, s])
+                data.append({
+                    'VAR':"q_hab",
+                    'T_SLICES': t,
+                    'SCEN': s,
+                    'PRODU': None,
+                    'VALUE': q_hab,
+                    'UNITATS': 'KWH/HABITATGE'
+                })
                 for p in model.P:
-                    val = py.value(model.q_end[t, s, p])
+
+                    # q_end variable
+                    q_end = py.value(model.q_end[t, s, p])
                     data.append({
                         'VAR':"q_end",
                         'T_SLICES': t,
-                        'SSCEN': s,
+                        'SCEN': s,
                         'PRODU': p,
-                        'VALUE': val
+                        'VALUE': q_end,
+                        'UNITATS': 'KWH/HABITATGE'
                 })
         data = pd.DataFrame(data)
         data.to_sql('results_cuina', conn, index=False, if_exists='replace')
