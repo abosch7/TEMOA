@@ -10,7 +10,7 @@ import sqlite3
 import time
 from pyomo.environ import *
 import pyomo.environ as py
-from pyomo.opt import SolverFactory
+from pao.pyomo import *
 
 conn = sqlite3.connect("TEMOA_ICAEN.sqlite")
 
@@ -52,8 +52,8 @@ class icaen_cuina_projection:
         time_periods_future = time_periods_future.sort_values(by=['T_SLICES'], ignore_index=True)
         time_periods_future = list(time_periods_future.T_SLICES)
 
-        time_base_year = [time_periods[0:1]]
-        time_no_base_year = [time_periods[1:]]
+        time_base_year = time_periods[0:1]
+        time_no_base_year = time_periods[1:]
 
         escenaris = pd.read_sql("SELECT * FROM escenaris", conn)  
         escenaris = escenaris.sort_values(by=['SCEN'], ignore_index=True)
@@ -70,8 +70,6 @@ class icaen_cuina_projection:
         model.T_no_base = py.Set(initialize=time_no_base_year)
         model.S = py.Set(initialize=escenaris)
         model.P = py.Set(initialize = productes)
-        print(list(model.T0))
-
 
         ## -- MATRIXC PARAMETERS -- ##
         def cONGN_rule(model,t):
@@ -92,7 +90,7 @@ class icaen_cuina_projection:
 
         def pERHAB_rule(model,t):
             return self.pERHAB[self.pERHAB['T_SLICES'] == t]['VALUE'].iloc[0]
-        model.pERHAB = py.Param(model.T0, rule=pERHAB_rule)
+        model.pERHAB = py.Param(model.T, rule=pERHAB_rule)
 
         def rEPFORM_rule(model,t,s,p):
             return self.rEPFORM[(self.rEPFORM['T_SLICES'] == t) & (self.rEPFORM['SCEN'] == s) & (self.rEPFORM['PRODU'] == p)]['VALUE'].iloc[0]
@@ -111,13 +109,13 @@ class icaen_cuina_projection:
         ## -- OBJECTIVE FUNCION CUINA MODEL DOMESTIC SECTOR -- ##
         def Fun_obj(model):
             return (sum(model.q_end[t,s,p] for t in model.T for s in model.S for p in model.P))
-        model.FunObj_up = py.Objective(rule = Fun_obj, sense = py.maximize)
+        model.FunObj = py.Objective(rule = Fun_obj, sense = py.maximize)
 
         ## -- CONSTRAINTS CUINA MODEL DOMESTIC SECTOR -- ##
         
         # C1: Calculating the mean value of GN with data aviable
         def get_cons_mean_GN_calc(model):
-            return model.q_GN == (sum(model.cONGN[t] for t in model.T0))/(len(model.T0))
+            return model.q_GN == (sum(model.cONGN[t] for t in model.T0))/(len(model.T0)*0.086)*1000
         model.cons_mean_GN_calc = py.Constraint(rule = get_cons_mean_GN_calc)
 
         # C2: Calculating the consumption of GN per meal for base year.
@@ -126,9 +124,20 @@ class icaen_cuina_projection:
         model.cons_meal_GN_base_calc = py.Constraint(model.T_base, model.S, rule = get_cons_meal_GN_base_calc)
 
         # C3: Calculating the consumption of GN per meal for hole years
-        # def get_cons_meal_GN_calc(model,t,s):
-        #     return model.q_ind[t,s] == model.q_ind[t-1,s]*(1+ model.cANVAP[t,s])
-        # model.cons_meal_GN_calc = py.Constraint(model.T_no_base, model.S, rule = get_cons_meal_GN_calc)
+        def get_cons_meal_GN_calc(model,t,s):
+            return model.q_ind[t,s] == model.q_ind[t-1,s]*(1+ model.cANVAP[t,s])
+        model.cons_meal_GN_calc = py.Constraint(model.T_no_base, model.S, rule = get_cons_meal_GN_calc)
+
+        #C4: Calculating the mean usefull energy consumption per household
+        def get_cons_mean_usefull_energy_calc(model,t,s):
+            return model.q_hab[t,s] == (model.q_ind[t,s] * self.DPY * self.NAP * model.pRESAP[t,s] * model.pERHAB[t])
+        model.cons_mean_usefull_energy_calc = py.Constraint(model.T, model.S, rule = get_cons_mean_usefull_energy_calc)
+
+        #C5: Distribute the energy consumption between all energy products
+        def get_cons_energy_products(model,t,s,p):
+            return model.q_end[t,s,p] == model.q_hab[t,s] * model.rEPFORM[t,s,p]/model.rEND[t,s,p]
+        model.cons_energy_products = py.Constraint(model.T, model.S, model.P, rule = get_cons_energy_products)
+
 
         model.write('icaen_cuina_projection.lp', io_options={'symbolic_solver_labels': True})
         return model.create_instance()
@@ -138,145 +147,46 @@ class icaen_cuina_projection:
         
         model = self.model()
 
-    #     print("Model Creat")
+        print("Model Creat")
 
-    #     print("Iniciant resolucio")
-    #     with Solver('pao.pyomo.PCCG',mip_solver="gurobi") as solver:
-    #         results = solver.solve(model, tee=True)
+        print("Iniciant resolucio")
+        
+        #opt = py.SolverFactory("solvers/scipampl")
+        with Solver("gurobi") as solver:
+             results = solver.solve(model, tee=True)
+        
 
-    #     opt = py.SolverFactory("solvers/scipampl")
-    #     results = opt.solve(model)
-    #     print("Resolucio OK")
+        print("Resolucio OK")
 
-    #     OF_value_up = round(value(model.FunObj_up),4)
-    #     OF_value_down = round(value(model.L.FunObj_down),4)
-    #     print(OF_value_up)
-    #     print(OF_value_down)
-    #     print(model.cost_inv.value)
+        OF_value = round(value(model.FunObj),4)
+        print(OF_value)
+
+        print(model.q_end.values)
 
     #     INICI ESCRIPTURA  
-    #     import pandas as pd
-    #     print("Iniciant escriptura")
-    #     filename = 'myfile.xlsx'
-    #     writer = pd.ExcelWriter(filename, engine='xlsxwriter')
 
-    #     Escriptura y
-    #     nn = 0
-    #     df = pd.DataFrame(columns=['n', 't', 'value'])
-    #     for n in model.y.keys():
-    #         val = py.value(model.y[n])
-    #         df.loc[nn] = [n[0], n[1], val]
-    #         nn+=1
-    #     df.to_excel(writer, sheet_name='Y', index=None)
+        print("Iniciant escriptura")
 
-    #     Escriptura V2G_in
-    #     nn = 0
-    #     df = pd.DataFrame(columns=['n', 't', 'h', 'value'])
-    #     for n in model.V2G_in.keys():
-    #         val = py.value(model.V2G_in[n])
-    #         print("x[{}] = {}".format(n, val))
-    #         df.loc[nn] = [n[0], n[1], n[2], val]
-    #         nn+=1
-    #     df.to_excel(writer, sheet_name='V2G_IN', index=None)
-
-    #     Escriptura V2G_out
-    #     nn = 0
-    #     df = pd.DataFrame(columns=['n', 't', 'h', 'value'])
-    #     for n in model.V2G_out.keys():
-    #         val = py.value(model.V2G_out[n])
-    #         print("x[{}] = {}".format(n, val))
-    #         df.loc[nn] = [n[0], n[1], n[2], val]
-    #         nn+=1
-    #     df.to_excel(writer, sheet_name='V2G_OUT', index=None)
-
-    #     Escriptura N_TOTAL
-    #     nn = 0
-    #     df = pd.DataFrame(columns=['n', 't', 'h', 'value'])
-    #     for n in model.N_total.keys():
-    #         val = py.value(model.N_total[n])
-    #         print("x[{}] = {}".format(n, val))
-    #         df.loc[nn] = [n[0], n[1], n[2], val]
-    #         nn+=1
-    #     df.to_excel(writer, sheet_name='N_TOTAL', index=None)
-
-    #     Escriptura p_v2g_c
-    #     nn = 0
-    #     df = pd.DataFrame(columns=['n', 't', 'h', 'value'])
-    #     for n in model.p_v2g_c.keys():
-    #         val = py.value(model.p_v2g_c[n])
-    #         print("x[{}] = {}".format(n, val))
-    #         df.loc[nn] = [n[0], n[1], n[2], val]
-    #         nn+=1
-    #     df.to_excel(writer, sheet_name='p_V2G_C', index=None)
-
-    #     Escriptura p_v2g_d
-    #     nn = 0
-    #     df = pd.DataFrame(columns=['n', 't', 'h', 'value'])
-    #     for n in model.p_v2g_d.keys():
-    #         val = py.value(model.p_v2g_d[n])
-    #         print("x[{}] = {}".format(n, val))
-    #         df.loc[nn] = [n[0], n[1], n[2], val]
-    #         nn+=1
-    #     df.to_excel(writer, sheet_name='p_V2G_D', index=None)
-
-    #     Escriptura p_IMP
-    #     nn = 0
-    #     df = pd.DataFrame(columns=['c', 'n', 't', 'h', 'value'])
-    #     for n in model.p_IMP.keys():
-    #         val = py.value(model.p_IMP[n])
-    #         print("x[{}] = {}".format(n, val))
-    #         df.loc[nn] = [n[0], n[1], n[2], n[3], val]
-    #         nn+=1
-    #     df.to_excel(writer, sheet_name='p_IMP', index=None)
-
-    #     Escriptura p_EXP
-    #     nn = 0
-    #     df = pd.DataFrame(columns=['c', 'n', 't', 'h', 'value'])
-    #     for n in model.p_EXP.keys():
-    #         val = py.value(model.p_EXP[n])
-    #         print("x[{}] = {}".format(n, val))
-    #         df.loc[nn] = [n[0], n[1], n[2], n[3], val]
-    #         nn+=1
-    #     df.to_excel(writer, sheet_name='p_EXP', index=None)
-
-    #     Escriptura p_grid
-    #     nn = 0
-    #     df = pd.DataFrame(columns=['n', 't', 'h', 'value'])
-    #     for n in model.p_grid.keys():
-    #         val = py.value(model.p_grid[n])
-    #         print("x[{}] = {}".format(n, val))
-    #         df.loc[nn] = [n[0], n[1], n[2], val]
-    #         nn+=1
-    #     df.to_excel(writer, sheet_name='p_GRID', index=None)
-
-    #     Escriptura e_node
-    #     nn = 0
-    #     df = pd.DataFrame(columns=['n', 't', 'h', 'value'])
-    #     for n in model.e_node.keys():
-    #         val = py.value(model.e_node[n])
-    #         print("x[{}] = {}".format(n, val))
-    #         df.loc[nn] = [n[0], n[1], n[2], val]
-    #         nn+=1
-    #     df.to_excel(writer, sheet_name='e_node', index=None)
-
-    #     Escriptura X_inter
-    #     nn = 0
-    #     df = pd.DataFrame(columns=['n', 'c','t', 'h', 'value'])
-    #     for n in model.X_inter.keys():
-    #         val = py.value(model.X_inter[n])
-    #         print("x[{}] = {}".format(n, val))
-    #         df.loc[nn] = [n[0], n[1], n[2], n[3], val]
-    #         nn+=1
-    #     df.to_excel(writer, sheet_name='X_inter', index=None)
-        
-    #     writer.close()
-    #     print("Escriptura OK")
+        data = []
+        for t in model.T:
+            for s in model.S:
+                for p in model.P:
+                    val = py.value(model.q_end[t, s, p])
+                    data.append({
+                        'VAR':"q_end",
+                        'T_SLICES': t,
+                        'SSCEN': s,
+                        'PRODU': p,
+                        'VALUE': val
+                })
+        data = pd.DataFrame(data)
+        data.to_sql('results_cuina', conn, index=False, if_exists='replace')
+        print("Escriptura OK")
 
 if __name__ == "__main__":
     mod = icaen_cuina_projection()
     print("Iniciant lectura")
     mod.read("TEMOA_ICAEN.sqlite")
     print("Lectura OK")
-
     print("Iniciant model")
     mod.RunModel()
