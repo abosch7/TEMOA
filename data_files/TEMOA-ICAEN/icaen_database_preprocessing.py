@@ -48,7 +48,9 @@ productes = list(productes.PRODU)
 
 
 print('_______________________________________________________________________')
+print()
 print("{:>62}".format('Output code of database_preprocessing.py:'))
+print()
 
 
 ## CUINA

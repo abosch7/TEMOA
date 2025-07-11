@@ -32,8 +32,6 @@ class icaen_cuina_projection:
         self.rEPFORM = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'REPFORM'", conn)
 
     def model(self):
-        #print(self.cONGN)
-        #print(self.cONGN[self.cONGN['T_SLICES'] == 2011]['VALUE'].iloc[0])
 
         ## -- CREATE A MODEL OBJECT -- ##
         model = py.ConcreteModel(name='icaen_cuina_projection')
@@ -146,18 +144,25 @@ class icaen_cuina_projection:
         
         model = self.model()
 
-        print("Model Creat")
+        print('_______________________________________________________________________')
+        print()
+        print("{:>62}".format('Output code of icaen_cuina_projection.py:'))
+        print()
+        
+        start_time = time.time()
 
-        print("Iniciant resolucio")
+        print_outcome = {'cuina':                    False
+                 }
+        print_i = 0
         
         with Solver("gurobi") as solver:
-             results = solver.solve(model, tee=True)
+             results = solver.solve(model, tee=False)
 
-        print("Resolucio OK")
+        #print("Resolucio OK")
 
     #     INICI ESCRIPTURA  
 
-        print("Iniciant escriptura")
+        #print("Iniciant escriptura")
 
         data = []
 
@@ -209,12 +214,17 @@ class icaen_cuina_projection:
                 })
         data = pd.DataFrame(data)
         data.to_sql('results_cuina', conn, index=False, if_exists='replace')
-        print("Escriptura OK")
+
+        end_time = time.time()
+        print_i = print_i + 1
+        print("{:>1} {:>2} {:>1} {:>2} {:>1} {:>50} {:>6} {:>1}".format('[', print_i, '/', len(print_outcome), ']',
+                                                                    'Cuina sector projected.',
+                                                                    np.format_float_positional(abs(end_time - start_time), 2), 's'))
 
 if __name__ == "__main__":
     mod = icaen_cuina_projection()
-    print("Iniciant lectura")
+    #print("Iniciant lectura")
     mod.read("TEMOA_ICAEN.sqlite")
-    print("Lectura OK")
-    print("Iniciant model")
+    #print("Lectura OK")
+    #print("Iniciant model")
     mod.RunModel()

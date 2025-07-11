@@ -7,6 +7,7 @@ sql_modules = ['TEMOA_ICAEN.sql']
 Deleting = True
 Reading = True
 Preprocessing = True
+Projecting = True
 Simplifying = False
 
 # Check if the SQLite database already exists and delete it
@@ -32,9 +33,17 @@ if Reading:
 if Preprocessing:
     with open("icaen_database_preprocessing.py") as preprocessing:
         exec(preprocessing.read())
+    print()
     print("{:>62}".format('SQLite database preprocessed.'))
 
 # Simplify the SQLite database by removing the selected set of milestone years
+
+if Projecting:
+    with open("icaen_cuina_projection.py") as projecting:
+        exec(projecting.read())
+    print()
+    print("{:>62}".format('Demand sectors projected.'))
+    print()
 
 if Simplifying:
     conn = sqlite3.connect(sqlite_database)
