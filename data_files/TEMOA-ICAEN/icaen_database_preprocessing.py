@@ -7,8 +7,8 @@ import time
 
 conn = sqlite3.connect("TEMOA_ICAEN.sqlite")
 
-lifetime_default = 40
 print_i = 0
+table_name = 'cuina'
 
 print_status = True
 #Indicate wich tables should be interpolated/extrapolated

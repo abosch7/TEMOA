@@ -8,7 +8,6 @@ Deleting = True
 Reading = True
 Preprocessing = True
 Projecting = True
-Simplifying = False
 
 # Check if the SQLite database already exists and delete it
 
@@ -44,14 +43,6 @@ if Projecting:
     print()
     print("{:>62}".format('Demand sectors projected.'))
     print()
-
-if Simplifying:
-    conn = sqlite3.connect(sqlite_database)
-    with open('database_simplifier.sql', mode='r', encoding='utf-8-sig') as sql_code:
-        conn.executescript(sql_code.read())
-    conn.commit()
-    conn.close()
-    print("{:>62}".format('SQLite database simplified.'))
 
 conn = sqlite3.connect(sqlite_database)
 conn.execute("VACUUM")
