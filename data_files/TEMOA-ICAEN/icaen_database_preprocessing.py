@@ -1,3 +1,9 @@
+"""
+Arxiu preprocessat base de dades -- ICAEN
+Manel Serrano Borja <mserrano@irec.cat>, ESA
+Antoni Bosch Pons <abosch@irec.cat>, ESA
+"""
+
 import pandas as pd
 import numpy as np
 import sqlite3

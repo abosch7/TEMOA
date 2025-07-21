@@ -1,3 +1,9 @@
+"""
+Arxiu d'execusió model demanda -- ICAEN
+Manel Serrano Borja <mserrano@irec.cat>, ESA
+Antoni Bosch Pons <abosch@irec.cat>, ESA
+"""
+
 import os
 import sqlite3
 import time
@@ -8,7 +14,7 @@ sql_modules = ['TEMOA_ICAEN.sql']
 Deleting = True
 Reading = True
 Preprocessing = True
-Projecting = False
+Projecting = True
 
 # Check if the SQLite database already exists and delete it
 
