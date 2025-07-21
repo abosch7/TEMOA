@@ -12,8 +12,6 @@ print_i = 0
 table_name = 'cuina'
 
 print_status = True
-#Indicate wich tables should be interpolated/extrapolated
-tables = ["cuina"]
 
 #Indicate which parameter should be interpolated/extrapolated
 interpol_param = ['PRESAP', 'CANVAP', 'REPFORM', 'REND']
@@ -137,68 +135,8 @@ for index_i in indexes:
                     cuina_VALUE.append(data_selection_i.VALUE[i]) 
                     cuina_UNITATS.append(data_selection_i.UNITATS[i]) 
                     cuina_FLAG.append(1) 
-
 ###___________________________________________________________________________________________________________________________________
 
-        # # Filtrar y ordenar los datos
-        # data_selection_i = data_selection[data_selection['INDEXES'] == index_i]
-        # data_selection_i = data_selection_i.sort_values(by='T_SLICES', ignore_index=True)
-
-        # # Base de tiempo y valores
-        # t_base = data_selection_i.T_SLICES.values
-        # v_base = data_selection_i.VALUE.values
-
-        # # Crear función de interpolación (con extrapolación constante)
-        # if len(t_base) >= 3:
-        #     f_interp = interp1d(
-        #         t_base, v_base,
-        #         kind='linear',
-        #         fill_value=(v_base[0], v_base[-1]),  # constante fuera de rango
-        #         bounds_error=False
-        #     )
-        # else:
-        #     f_interp = interp1d(
-        #         t_base, v_base,
-        #         kind='linear',
-        #         fill_value=(v_base[0], v_base[-1]),
-        #         bounds_error=False
-        #     )
-
-        # # Loop principal
-        # for i in range(len(t_base)):
-        #     if i < len(t_base) - 1:  # Interpolación
-        #         time_periods_i = [x for x in time_periods if t_base[i] <= x < t_base[i+1]]
-
-        #         for j, t in enumerate(time_periods_i):
-        #             cuina_PARAM.append(data_selection_i.PARAM[i])
-        #             cuina_SCEN.append(data_selection_i.SCEN[i])
-        #             cuina_PRODU.append(data_selection_i.PRODU[i])
-        #             cuina_T_SLICES.append(t)
-                    
-        #             if j == 0:
-        #                 cuina_VALUE.append(data_selection_i.VALUE[i])
-        #                 cuina_FLAG.append(data_selection_i.FLAG[i])
-        #             else:
-        #                 cuina_VALUE.append(float(f_interp(t)))  # interpolado
-        #                 cuina_FLAG.append(1)
-
-        #             cuina_UNITATS.append(data_selection_i.UNITATS[i])
-
-        #     else:  # Extrapolación (más allá del último T_SLICE)
-        #         time_periods_i = [x for x in time_periods if x >= t_base[i]]
-
-        #         for t in time_periods_i:
-        #             cuina_PARAM.append(data_selection_i.PARAM[i])
-        #             cuina_SCEN.append(data_selection_i.SCEN[i])
-        #             cuina_PRODU.append(data_selection_i.PRODU[i])
-        #             cuina_T_SLICES.append(t)
-        #             cuina_VALUE.append(float(f_interp(t)))  # extrapolado (constante)
-        #             cuina_UNITATS.append(data_selection_i.UNITATS[i])
-        #             cuina_FLAG.append(1)
-
-
-
-###___________________________________________________________________________________________________________________________________
 # Converting lists into a DataFrame
 new_data_selection = pd.DataFrame(
     {
