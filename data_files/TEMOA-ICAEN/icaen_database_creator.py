@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import time
 
 sqlite_database = 'TEMOA_ICAEN.sqlite'
 sql_modules = ['TEMOA_ICAEN.sql']
