@@ -8,7 +8,7 @@ sql_modules = ['TEMOA_ICAEN.sql']
 Deleting = True
 Reading = True
 Preprocessing = True
-Projecting = True
+Projecting = False
 
 # Check if the SQLite database already exists and delete it
 
@@ -31,7 +31,7 @@ if Reading:
 # Execute the database_preprocessing.py script
 
 if Preprocessing:
-    with open("icaen_database_preprocessing.py") as preprocessing:
+    with open("icaen_database_preprocessing_2.py") as preprocessing:
         exec(preprocessing.read())
     print()
     print("{:>62}".format('SQLite database preprocessed.'))
