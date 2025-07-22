@@ -9,9 +9,10 @@ CREATE TABLE parametres (
    'PARAM'    text,
    primary key('PARAM')
 );
+--  PARAMETRES COMUNS EN VARIS USOS
+INSERT INTO parametres VALUES('PERHAB');   -- Persones per habitatge (t) (cuina i rentadora)
 
 --  PARAMETRES INCOPORTARS A CUINA
-INSERT INTO parametres VALUES('PERHAB');   -- Persones per habitatge (t)
 INSERT INTO parametres VALUES('PRESAP');   -- Presencia en àpats a habitatge (t,s)
 INSERT INTO parametres VALUES('CANVAP');   -- Canvis en els àpats (t,s)
 INSERT INTO parametres VALUES('REND');     -- Rendiments tecnologies (t,f)
@@ -19,10 +20,9 @@ INSERT INTO parametres VALUES('REPFORM');  -- Repartiment de formes de tecnologi
 INSERT INTO parametres VALUES('CONGN');    -- Consum real GN per a cuina
 
 --  PARAMETRES INCOPORTARS A RENTADORA
-INSERT INTO parametres VALUES('PERHAB');   -- Persones per habitatge (t)
 INSERT INTO parametres VALUES('CONSRENT');   -- Dades consum segons tipus de rentat (r)
-INSERT INTO parametres VALUES('CANVRENT');   -- Canvis en el consum segons el tipus de rentat (t,r)
-INSERT INTO parametres VALUES('DRENT');      -- Distribució ús tipus de rentat (t,r)
+INSERT INTO parametres VALUES('CANVRENT');   -- Canvis en el consum segons el tipus de rentat (t,s)
+INSERT INTO parametres VALUES('DRENT');      -- Distribució ús tipus de rentat (t,s,r)
 
 --  INTERVALS TEMPORALS DE LES DADES INTRODUIDES (t)
 CREATE TABLE time_slices (
@@ -347,7 +347,7 @@ INSERT INTO rentadora VALUES ('CONSRENT', NULL, 2010, 'FRED', 0.3, 'KWH/RENTAT',
 INSERT INTO rentadora VALUES ('CONSRENT', NULL, 2010, 'TEMP', 1.1, 'KWH/RENTAT', 0);
 INSERT INTO rentadora VALUES ('CONSRENT', NULL, 2010, 'CALE', 1.3, 'KWH/RENTAT', 0);
 
--- Canvis en el consum segons el tipus de rentat (t,r)
+-- Canvis en el consum segons el tipus de rentat (t,s)
 
 INSERT INTO rentadora VALUES ('CANVRENT', 'BASE', 2010, NULL, -0.02, 'TANT PER U', 0);
 INSERT INTO rentadora VALUES ('CANVRENT', 'BASE', 2015, NULL, -0.02, 'TANT PER U', 0);
@@ -365,48 +365,79 @@ INSERT INTO rentadora VALUES ('CANVRENT', 'APOSTA', 2040, NULL, -0.003, 'TANT PE
 INSERT INTO rentadora VALUES ('CANVRENT', 'APOSTA', 2050, NULL, -0.002, 'TANT PER U', 0);
 
 
--- Distribució ús tipus de rentat (t,r)
+-- Distribució ús tipus de rentat (t,s,r)
 
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2010, 'FRED', 0.028, 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2015, 'FRED', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2020, 'FRED', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2025, 'FRED', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2030, 'FRED', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2040, 'FRED', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2050, 'FRED', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2010, 'TEMP', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2015, 'TEMP', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2020, 'TEMP', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2025, 'TEMP', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2030, 'TEMP', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2040, 'TEMP', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2050, 'TEMP', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2010, 'CALE', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2015, 'CALE', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2020, 'CALE', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2025, 'CALE', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2030, 'CALE', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2040, 'CALE', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2050, 'CALE', , 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2010, 'FRED', 0.534, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2015, 'FRED', 0.571, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2020, 'FRED', 0.636, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2025, 'FRED', 0.670, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2030, 'FRED', 0.678, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2040, 'FRED', 0.678, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2050, 'FRED', 0.678, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2010, 'TEMP', 0.439, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2015, 'TEMP', 0.404, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2020, 'TEMP', 0.342, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2025, 'TEMP', 0.310, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2030, 'TEMP', 0.303, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2040, 'TEMP', 0.303, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2050, 'TEMP', 0.303, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2010, 'CALE', 0.028, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2015, 'CALE', 0.025, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2020, 'CALE', 0.021, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2025, 'CALE', 0.020, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2030, 'CALE', 0.019, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2040, 'CALE', 0.019, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'BASE', 2050, 'CALE', 0.019, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2010, 'FRED', 0.534, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2015, 'FRED', 0.571, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2020, 'FRED', 0.636, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2025, 'FRED', 0.681, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2030, 'FRED', 0.750, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2040, 'FRED', 0.840, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2050, 'FRED', 0.900, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2010, 'TEMP', 0.439, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2015, 'TEMP', 0.404, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2020, 'TEMP', 0.342, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2025, 'TEMP', 0.300, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2030, 'TEMP', 0.250, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2040, 'TEMP', 0.160, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2050, 'TEMP', 0.100, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2010, 'CALE', 0.028, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2015, 'CALE', 0.025, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2020, 'CALE', 0.021, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2025, 'CALE', 0.019, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2030, 'CALE', 0.000, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2040, 'CALE', 0.000, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2050, 'CALE', 0.000, 'TANT PER U', 0);
 
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2010, 'FRED', 0.028, 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2015, 'FRED', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2020, 'FRED', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2025, 'FRED', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2030, 'FRED', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2040, 'FRED', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2050, 'FRED', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2010, 'TEMP', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2015, 'TEMP', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2020, 'TEMP', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2025, 'TEMP', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2030, 'TEMP', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2040, 'TEMP', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2050, 'TEMP', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2010, 'CALE', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2015, 'CALE', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2020, 'CALE', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2025, 'CALE', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2030, 'CALE', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2040, 'CALE', , 'TANT PER U', 0);
-INSERT INTO rentadora VALUES ('DRENT', 'APOSTA', 2050, 'CALE', , 'TANT PER U', 0);
+
+
+
+-- Taula dels paràmetres de l'ús rentadora
+CREATE TABLE test (
+   'PARAM' text,
+   'SCEN' text,
+   'T_SLICES' integer,
+   'RENT' real,
+   'VALUE' real,
+   'FLAG' integer, -- (0-imposat; 1-calculat)
+   primary key('PARAM','SCEN','T_SLICES', 'RENT')
+   foreign key("SCEN") references "escenaris"("SCEN")
+   foreign key("T_SLICES") references "time_slices"("T_SLICES")
+   foreign key("RENT") references "rentats"("RENT")
+);
+
+INSERT INTO  test VALUES ('PROVA', 'BASE', 2010, NULL, -0.02, 0);
+INSERT INTO  test VALUES ('PROVA', 'BASE', 2015, NULL, -0.02, 0);
+INSERT INTO  test VALUES ('PROVA', 'BASE', 2020, NULL, -0.01, 0);
+INSERT INTO  test VALUES ('PROVA', 'BASE', 2025, NULL, -0.005, 0);
+INSERT INTO  test VALUES ('PROVA', 'BASE', 2030, NULL, -0.003, 0);
+INSERT INTO  test VALUES ('PROVA', 'BASE', 2040, NULL, -0.001, 0);
+INSERT INTO  test VALUES ('PROVA', 'BASE', 2050, NULL, -0.001, 0);
+INSERT INTO  test VALUES ('PROVA', 'APOSTA', 2010, NULL, -0.02, 0);
+INSERT INTO  test VALUES ('PROVA', 'APOSTA', 2015, NULL, -0.02, 0);
+INSERT INTO  test VALUES ('PROVA', 'APOSTA', 2020, NULL, -0.01, 0);
+INSERT INTO  test VALUES ('PROVA', 'APOSTA', 2025, NULL, -0.005, 0);
+INSERT INTO  test VALUES ('PROVA', 'APOSTA', 2030, NULL, -0.005, 0);
+INSERT INTO  test VALUES ('PROVA', 'APOSTA', 2040, NULL, -0.003, 0);
+INSERT INTO  test VALUES ('PROVA', 'APOSTA', 2050, NULL, -0.002, 0);

@@ -7,10 +7,16 @@ Antoni Bosch Pons <abosch@irec.cat>, ESA
 import os
 import sqlite3
 import time
+from icaen_database_preprocessing import process_table
 
-sqlite_database = 'TEMOA_ICAEN.sqlite'
 sql_modules = ['TEMOA_ICAEN.sql']
-
+sqlite_database = "TEMOA_ICAEN.sqlite"
+table_param_map = {
+    'cuina': ['PRESAP', 'CANVAP', 'REPFORM', 'REND'],
+    'rentadora': ['CANVRENT', 'DRENT'],
+    'test':['PROVA']
+}
+interpolation_method = 'linear'
 Deleting = True
 Reading = True
 Preprocessing = True
@@ -37,8 +43,18 @@ if Reading:
 # Execute the database_preprocessing.py script
 
 if Preprocessing:
-    with open("icaen_database_preprocessing_2.py") as preprocessing:
-        exec(preprocessing.read())
+    print('_______________________________________________________________________\n')
+    print("{:>62}".format('Output code of database_preprocessing.py:\n'))
+    conn = sqlite3.connect(sqlite_database)
+    for idx, (table_name, interpol_param) in enumerate(table_param_map.items(), 1):
+        try:
+            message = process_table(conn, table_name, interpol_param, interpolation_method)
+            print("{:>62}".format(f"[{idx}/{len(table_param_map)}] {message}"))
+        except Exception as e:
+            print("{:>62}".format(f"[{idx}/{len(table_param_map)}] Error processing table '{table_name}'--> {e}"))
+    conn.commit()
+    conn.close()
+    
     print()
     print("{:>62}".format('SQLite database preprocessed.'))
 
