@@ -7,6 +7,7 @@ Antoni Bosch Pons <abosch@irec.cat>, ESA
 import os
 import sqlite3
 import time
+import numpy as np
 from icaen_database_preprocessing import process_table
 
 sql_modules = ['TEMOA_ICAEN.sql']
@@ -16,21 +17,25 @@ table_param_map = {
     'rentadora': ['CANVRENT', 'DRENT'],
     'test':['PROVA']
 }
-interpolation_method = 'linear'
+interpolation_method = 'leard'
+
 Deleting = True
 Reading = True
 Preprocessing = True
 Projecting = True
 
 # Check if the SQLite database already exists and delete it
-
+start_time = time.time()
 if Deleting:
     if os.path.exists(sqlite_database):
         os.remove(sqlite_database)
-        print("{:>62}".format('Existing SQLite database deleted.'))
+        end_time = time.time()
+        elapsed = abs(end_time - start_time)
+        print("{:>62} {:>4} {:>0}".format('Existing SQLite database deleted.', np.format_float_positional(abs(elapsed), 2), 's'))
 
 # Create the SQLite database and execute the SQL code(s)
 
+start_time = time.time()
 if Reading:
     for sql in sql_modules:
         conn = sqlite3.connect(sqlite_database)
@@ -38,10 +43,13 @@ if Reading:
             conn.executescript(sql_code.read())
         conn.commit()
         conn.close()
-    print("{:>62}".format('SQLite database created and SQL code executed.'))
+    end_time = time.time()
+    elapsed = abs(end_time - start_time)
+    print("{:>62} {:>4} {:>0}".format('SQLite database created and SQL code executed.', np.format_float_positional(abs(elapsed), 2), 's'))
 
 # Execute the database_preprocessing.py script
 
+start_time = time.time()
 if Preprocessing:
     print('_______________________________________________________________________\n')
     print("{:>62}".format('Output code of database_preprocessing.py:\n'))
@@ -56,15 +64,20 @@ if Preprocessing:
     conn.close()
     
     print()
-    print("{:>62}".format('SQLite database preprocessed.'))
+    end_time = time.time()
+    elapsed = abs(end_time - start_time)
+    print("{:>62} {:>4} {:>0}".format('SQLite database preprocessed.', np.format_float_positional(abs(elapsed), 2), 's'))
+
 
 # Simplify the SQLite database by removing the selected set of milestone years
-
+start_time = time.time()
 if Projecting:
     with open("icaen_cuina_projection.py") as projecting:
         exec(projecting.read())
     print()
-    print("{:>62}".format('Demand sectors projected.'))
+    end_time = time.time()
+    elapsed = abs(end_time - start_time)
+    print("{:>62} {:>4} {:>0}".format('Demand sectors projected.', np.format_float_positional(abs(elapsed), 2), 's'))
     print()
 
 conn = sqlite3.connect(sqlite_database)

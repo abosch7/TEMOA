@@ -59,8 +59,11 @@ def process_table(conn, table_name, interpol_param, interpolation_method='linear
             for t in [t for t in time_periods if t >= ts_existing[0]]:
                 new_row = group_df.iloc[0].copy()
                 new_row['T_SLICES'] = t
-                new_row['FLAG'] = 1
                 result.append(new_row.drop(labels=['GROUP_KEY', 'INTERPOLATE']).to_dict())
+                if t in ts_existing:
+                    new_row['FLAG'] = 0
+                else:
+                    new_row['FLAG'] = 1
             continue
 
         # Interpolating using scipy function
@@ -76,7 +79,10 @@ def process_table(conn, table_name, interpol_param, interpolation_method='linear
             new_row = group_df.iloc[0].copy()
             new_row['T_SLICES'] = t
             new_row['VALUE'] = round(float(interp_func(t)),ndigits=4) 
-            new_row['FLAG'] = 1
+            if t in ts_existing:
+                new_row['FLAG'] = 0
+            else:
+                new_row['FLAG'] = 1
             result.append(new_row.drop(labels=['GROUP_KEY', 'INTERPOLATE']).to_dict())
 
     # Generate final dataframe

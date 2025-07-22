@@ -1,5 +1,5 @@
 """
-Model Demanda sector Domèstic (Cuina) -- ICAEN
+Model Demanda sector Domèstic (Rentadora) -- ICAEN
 Manel Serrano Borja <mserrano@irec.cat>, ESA
 Antoni Bosch Pons <abosch@irec.cat>, ESA
 """
@@ -14,7 +14,7 @@ from pao.pyomo import *
 
 conn = sqlite3.connect("TEMOA_ICAEN.sqlite")
 
-class icaen_cuina_projection:
+class icaen_rentadora_projection:
     def __init__(self, name=None):
 
         # Scalar Parameters
@@ -24,17 +24,17 @@ class icaen_cuina_projection:
     def read(self, dir):
         conn = sqlite3.connect(dir)
         
-        self.cONGN = pd.read_sql("SELECT VALUE, T_SLICES FROM cuina WHERE PARAM = 'CONGN'", conn)
-        self.pRESAP = pd.read_sql("SELECT VALUE, T_SLICES, SCEN FROM cuina WHERE PARAM = 'PRESAP'", conn)
-        self.cANVAP = pd.read_sql("SELECT VALUE, T_SLICES, SCEN FROM cuina WHERE PARAM = 'CANVAP'", conn)
-        self.rEND = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'REND'", conn)
-        self.pERHAB = pd.read_sql("SELECT VALUE, T_SLICES FROM cuina WHERE PARAM = 'PERHAB'", conn)
-        self.rEPFORM = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM cuina WHERE PARAM = 'REPFORM'", conn)
+        self.cONGN = pd.read_sql("SELECT VALUE, T_SLICES FROM rentadora WHERE PARAM = 'CONGN'", conn)
+        self.pRESAP = pd.read_sql("SELECT VALUE, T_SLICES, SCEN FROM rentadora WHERE PARAM = 'PRESAP'", conn)
+        self.cANVAP = pd.read_sql("SELECT VALUE, T_SLICES, SCEN FROM rentadora WHERE PARAM = 'CANVAP'", conn)
+        self.rEND = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM rentadora WHERE PARAM = 'REND'", conn)
+        self.pERHAB = pd.read_sql("SELECT VALUE, T_SLICES FROM rentadora WHERE PARAM = 'PERHAB'", conn)
+        self.rEPFORM = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM rentadora WHERE PARAM = 'REPFORM'", conn)
 
     def model(self):
 
         ## -- CREATE A MODEL OBJECT -- ##
-        model = py.ConcreteModel(name='icaen_cuina_projection')
+        model = py.ConcreteModel(name='icaen_rentadora_projection')
 
 
         ## -- SETS -- ##
@@ -101,14 +101,14 @@ class icaen_cuina_projection:
         model.q_hab = py.Var(model.T, model.S, domain = py.NonNegativeReals)
         model.q_end  = py.Var(model.T, model.S, model.P, domain = py.NonNegativeReals)
         
-        ######### -- DEFINE CUINA MODEL DOMESTIC SECTOR -- #########
+        ######### -- DEFINE RENTADORA MODEL DOMESTIC SECTOR -- #########
 
-        ## -- OBJECTIVE FUNCION CUINA MODEL DOMESTIC SECTOR -- ##
+        ## -- OBJECTIVE FUNCION RENTADORA MODEL DOMESTIC SECTOR -- ##
         def Fun_obj(model):
             return (sum(model.q_end[t,s,p] for t in model.T for s in model.S for p in model.P))
         model.FunObj = py.Objective(rule = Fun_obj, sense = py.minimize)
 
-        ## -- CONSTRAINTS CUINA MODEL DOMESTIC SECTOR -- ##
+        ## -- CONSTRAINTS RENTADORA MODEL DOMESTIC SECTOR -- ##
         
         # C1: Calculating the mean value of GN with data aviable
         def get_cons_mean_GN_calc(model):
@@ -136,7 +136,7 @@ class icaen_cuina_projection:
         model.cons_energy_products = py.Constraint(model.T, model.S, model.P, rule = get_cons_energy_products)
 
 
-        model.write('icaen_cuina_projection.lp', io_options={'symbolic_solver_labels': True})
+        model.write('icaen_rentadora_projection.lp', io_options={'symbolic_solver_labels': True})
         return model.create_instance()
 
 
@@ -146,12 +146,12 @@ class icaen_cuina_projection:
 
         print('_______________________________________________________________________')
         print()
-        print("{:>62}".format('Output code of icaen_cuina_projection.py:'))
+        print("{:>62}".format('Output code of icaen_rentadora_projection.py:'))
         print()
         
         start_time = time.time()
 
-        print_outcome = {'cuina':                    False
+        print_outcome = {'rentadora':                    False
                  }
         print_i = 0
         
@@ -213,15 +213,18 @@ class icaen_cuina_projection:
                         'UNITATS': 'KWH/HABITATGE'
                 })
         data = pd.DataFrame(data)
-        data.to_sql('results_cuina', conn, index=False, if_exists='replace')
+        data.to_sql('results_rentadora', conn, index=False, if_exists='replace')
 
         end_time = time.time()
 
     
         print_i = print_i + 1
-        print("{:>1} {:>2} {:>1}".format('Cuina sector projected in', np.format_float_positional(abs(end_time - start_time), 2), 'seconds.'))
+        print("{:>1} {:>2} {:>1}".format('rentadora sector projected in', np.format_float_positional(abs(end_time - start_time), 2), 'seconds.'))
 
 if __name__ == "__main__":
-    mod = icaen_cuina_projection()
+    mod = icaen_rentadora_projection()
+    #print("Iniciant lectura")
     mod.read("TEMOA_ICAEN.sqlite")
+    #print("Lectura OK")
+    #print("Iniciant model")
     mod.RunModel()
