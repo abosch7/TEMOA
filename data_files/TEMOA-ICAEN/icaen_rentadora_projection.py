@@ -18,18 +18,17 @@ class icaen_rentadora_projection:
     def __init__(self, name=None):
 
         # Scalar Parameters
-        self.DPY = 365                  # Number of days per year
-        self.NAP = 2                    # Number of meals per day per person
+        self.WPY = 52                    # Number of meals per day per person
 
     def read(self, dir):
         conn = sqlite3.connect(dir)
         
-        self.cONGN = pd.read_sql("SELECT VALUE, T_SLICES FROM rentadora WHERE PARAM = 'CONGN'", conn)
-        self.pRESAP = pd.read_sql("SELECT VALUE, T_SLICES, SCEN FROM rentadora WHERE PARAM = 'PRESAP'", conn)
-        self.cANVAP = pd.read_sql("SELECT VALUE, T_SLICES, SCEN FROM rentadora WHERE PARAM = 'CANVAP'", conn)
-        self.rEND = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM rentadora WHERE PARAM = 'REND'", conn)
+
         self.pERHAB = pd.read_sql("SELECT VALUE, T_SLICES FROM rentadora WHERE PARAM = 'PERHAB'", conn)
-        self.rEPFORM = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, PRODU FROM rentadora WHERE PARAM = 'REPFORM'", conn)
+        self.cANVRENT = pd.read_sql("SELECT VALUE, T_SLICES, SCEN FROM rentadora WHERE PARAM = 'CANVRENT'", conn)
+        self.dRENT = pd.read_sql("SELECT VALUE, T_SLICES, SCEN, RENT FROM rentadora WHERE PARAM = 'DRENT'", conn)
+        self.cONSRENT = pd.read_sql("SELECT VALUE, RENT FROM rentadora WHERE PARAM = 'CONSRENT'", conn)
+        self.nRENTP = pd.read_sql("SELECT VALUE, T_SLICES, SCEN FROM rentadora WHERE PARAM = 'NRENTP'", conn)
 
     def model(self):
 
@@ -42,14 +41,6 @@ class icaen_rentadora_projection:
         time_periods = time_periods.sort_values(by=['T_SLICES'], ignore_index=True)
         time_periods = list(time_periods.T_SLICES)
 
-        time_periods_past = pd.read_sql("SELECT * FROM time_slices WHERE PAST = 1", conn) 
-        time_periods_past = time_periods_past.sort_values(by=['T_SLICES'], ignore_index=True)
-        time_periods_past = list(time_periods_past.T_SLICES)
-
-        time_periods_future = pd.read_sql("SELECT * FROM time_slices WHERE PAST = 0", conn) 
-        time_periods_future = time_periods_future.sort_values(by=['T_SLICES'], ignore_index=True)
-        time_periods_future = list(time_periods_future.T_SLICES)
-
         time_base_year = time_periods[0:1]
         time_no_base_year = time_periods[1:]
 
@@ -57,174 +48,127 @@ class icaen_rentadora_projection:
         escenaris = escenaris.sort_values(by=['SCEN'], ignore_index=True)
         escenaris = list(escenaris.SCEN)
 
-        productes = pd.read_sql("SELECT * FROM productes", conn)  
-        productes = productes.sort_values(by=['PRODU'], ignore_index=True)
-        productes = list(productes.PRODU)
+        rentats = pd.read_sql("SELECT * FROM rentats", conn)  
+        rentats = rentats.sort_values(by=['RENT'], ignore_index=True)
+        rentats = list(rentats.RENT)
 
         model.T = py.Set(initialize=time_periods)
-        model.T0 = py.Set(initialize=time_periods_past)
-        model.T1 = py.Set(initialize=time_periods_future)
         model.T_base = py.Set(initialize=time_base_year)
         model.T_no_base = py.Set(initialize=time_no_base_year)
         model.S = py.Set(initialize=escenaris)
-        model.P = py.Set(initialize = productes)
+        model.R = py.Set(initialize=rentats)
 
         ## -- MATRIXC PARAMETERS -- ##
-        def cONGN_rule(model,t):
-            return self.cONGN[self.cONGN['T_SLICES'] == t]['VALUE'].iloc[0]
-        model.cONGN = py.Param(model.T0, rule=cONGN_rule)
-
-        def pRESAP_rule(model,t,s):
-            return self.pRESAP[(self.pRESAP['T_SLICES'] == t) & (self.pRESAP['SCEN'] == s)]['VALUE'].iloc[0]
-        model.pRESAP = py.Param(model.T, model.S, rule=pRESAP_rule)
-
-        def cANVAP_rule(model,t,s):
-            return self.cANVAP[(self.cANVAP['T_SLICES'] == t) & (self.cANVAP['SCEN'] == s)]['VALUE'].iloc[0]
-        model.cANVAP = py.Param(model.T, model.S, rule=cANVAP_rule)
-
-        def rEND_rule(model,t,s,p):
-            return self.rEND[(self.rEND['T_SLICES'] == t) & (self.rEND['SCEN'] == s)& (self.rEPFORM['PRODU'] == p)]['VALUE'].iloc[0]
-        model.rEND = py.Param(model.T, model.S, model.P, rule=rEND_rule)
 
         def pERHAB_rule(model,t):
             return self.pERHAB[self.pERHAB['T_SLICES'] == t]['VALUE'].iloc[0]
         model.pERHAB = py.Param(model.T, rule=pERHAB_rule)
 
-        def rEPFORM_rule(model,t,s,p):
-            return self.rEPFORM[(self.rEPFORM['T_SLICES'] == t) & (self.rEPFORM['SCEN'] == s) & (self.rEPFORM['PRODU'] == p)]['VALUE'].iloc[0]
-        model.rEPFORM = py.Param(model.T, model.S, model.P, rule=rEPFORM_rule)
+        def cANVRENT_rule(model,t,s):
+            return self.cANVRENT[(self.cANVRENT['T_SLICES'] == t) & (self.cANVRENT['SCEN'] == s)]['VALUE'].iloc[0]
+        model.cANVRENT = py.Param(model.T, model.S, rule=cANVRENT_rule)
+
+        def dRENT_rule(model,t,s,r):
+            return self.dRENT[(self.dRENT['T_SLICES'] == t) & (self.dRENT['SCEN'] == s)& (self.dRENT['RENT'] == r)]['VALUE'].iloc[0]
+        model.dRENT = py.Param(model.T, model.S, model.R, rule=dRENT_rule)
+
+        def cONSRENT_rule(model,r):
+            return self.cONSRENT[self.cONSRENT['RENT'] == r]['VALUE'].iloc[0]
+        model.cONSRENT = py.Param(model.R, rule=cONSRENT_rule)
+
+        def nRENTP_rule(model,t,s):
+            return self.nRENTP[(self.nRENTP['T_SLICES'] == t) & (self.nRENTP['SCEN'] == s)]['VALUE'].iloc[0]
+        model.nRENTP = py.Param(model.T, model.S, rule=nRENTP_rule)
 
         ## -- VARIABLES -- ##
-
-        model.q_GN = py.Var(domain = py.NonNegativeReals)
-        model.q_ind = py.Var(model.T, model.S, domain = py.NonNegativeReals)
-        model.q_hab = py.Var(model.T, model.S, domain = py.NonNegativeReals)
-        model.q_end  = py.Var(model.T, model.S, model.P, domain = py.NonNegativeReals)
+        model.q_rent_final      = py.Var(model.T, model.S, model.R, domain = py.NonNegativeReals)
+        model.q_rent_final_hat  = py.Var(model.T, model.S, domain = py.NonNegativeReals)
+        model.q_rent_year       = py.Var(model.T, model.S, domain = py.NonNegativeReals)
         
         ######### -- DEFINE RENTADORA MODEL DOMESTIC SECTOR -- #########
 
         ## -- OBJECTIVE FUNCION RENTADORA MODEL DOMESTIC SECTOR -- ##
         def Fun_obj(model):
-            return (sum(model.q_end[t,s,p] for t in model.T for s in model.S for p in model.P))
+            return (sum(model.q_rent_final[t,s,r]for t in model.T for s in model.S for r in model.R))
         model.FunObj = py.Objective(rule = Fun_obj, sense = py.minimize)
 
         ## -- CONSTRAINTS RENTADORA MODEL DOMESTIC SECTOR -- ##
         
-        # C1: Calculating the mean value of GN with data aviable
-        def get_cons_mean_GN_calc(model):
-            return model.q_GN == (sum(model.cONGN[t] for t in model.T0))/(len(model.T0)*0.086)*1000
-        model.cons_mean_GN_calc = py.Constraint(rule = get_cons_mean_GN_calc)
+        # C1: Establishing the final energy consumption for base year
+        def get_cons_base_year(model,t,s,r):
+            return model.q_rent_final[t,s,r] == model.cONSRENT[r]
+        model.cons_base_year = py.Constraint(model.T_base, model.S, model.R, rule = get_cons_base_year)
 
-        # C2: Calculating the consumption of GN per meal for base year.
-        def get_cons_meal_GN_base_calc(model,t,s):
-            return model.q_ind[t,s] == (model.q_GN * model.rEND[t,s,"GN"])/(self.DPY * self.NAP * model.pRESAP[t,s] * model.pERHAB[t])
-        model.cons_meal_GN_base_calc = py.Constraint(model.T_base, model.S, rule = get_cons_meal_GN_base_calc)
+        # C2: Establishing the final energy consumption for projection years
+        def get_cons_projection_year(model,t,s,r):
+            return model.q_rent_final[t,s,r] == model.q_rent_final[t-1,s,r]*(1 + model.cANVRENT[t,s])
+        model.cons_projection_year = py.Constraint(model.T_no_base, model.S, model.R, rule = get_cons_projection_year)
 
-        # C3: Calculating the consumption of GN per meal for hole years
-        def get_cons_meal_GN_calc(model,t,s):
-            return model.q_ind[t,s] == model.q_ind[t-1,s]*(1+ model.cANVAP[t,s])
-        model.cons_meal_GN_calc = py.Constraint(model.T_no_base, model.S, rule = get_cons_meal_GN_calc)
+        # C3: Calculating the mean energy final consumption based on energy washing programs distribution
+        def get_cons_mean_final_consumption(model,t,s):
+            return model.q_rent_final_hat[t,s] == sum(model.q_rent_final[t,s,r]*model.dRENT[t,s,r] for r in model.R)
+        model.cons_mean_final_consumption = py.Constraint(model.T, model.S, rule = get_cons_mean_final_consumption)
 
-        #C4: Calculating the mean usefull energy consumption per household
-        def get_cons_mean_usefull_energy_calc(model,t,s):
-            return model.q_hab[t,s] == (model.q_ind[t,s] * self.DPY * self.NAP * model.pRESAP[t,s] * model.pERHAB[t])
-        model.cons_mean_usefull_energy_calc = py.Constraint(model.T, model.S, rule = get_cons_mean_usefull_energy_calc)
-
-        #C5: Distribute the energy consumption between all energy products
-        def get_cons_energy_products(model,t,s,p):
-            return model.q_end[t,s,p] == model.q_hab[t,s] * model.rEPFORM[t,s,p]/model.rEND[t,s,p]
-        model.cons_energy_products = py.Constraint(model.T, model.S, model.P, rule = get_cons_energy_products)
+        #C4: Calculating the mean final energy consumption per household and year
+        def get_cons_yearly_mean_final_consumption(model,t,s):
+            return model.q_rent_year[t,s] == model.q_rent_final_hat[t,s]*model.pERHAB[t]*model.nRENTP[t,s]*self.WPY
+        model.cons_yearly_mean_final_consumption = py.Constraint(model.T, model.S, rule = get_cons_yearly_mean_final_consumption)
 
 
         model.write('icaen_rentadora_projection.lp', io_options={'symbolic_solver_labels': True})
         return model.create_instance()
 
-
     def RunModel(self):
         
         model = self.model()
 
-        print('_______________________________________________________________________')
-        print()
-        print("{:>62}".format('Output code of icaen_rentadora_projection.py:'))
-        print()
         
-        start_time = time.time()
-
-        print_outcome = {'rentadora':                    False
-                 }
-        print_i = 0
-        
-        with Solver("gurobi") as solver:
-             results = solver.solve(model, tee=False)
-
-        #print("Resolucio OK")
+        with Solver("glpk") as solver:
+            solver.solve(model, tee=False)
 
     #     INICI ESCRIPTURA  
-
-        #print("Iniciant escriptura")
-
         data = []
 
-        # g_GN Variable
-        q_GN = py.value(model.q_GN)
-        data.append({
-            'VAR':"q_GN",
-            'T_SLICES': None,
-            'SCEN': None,
-            'PRODU': None,
-            'VALUE': q_GN,
-            'UNITATS': 'KWH/HABITATGE'
-                })
         for t in model.T:
             for s in model.S:
 
-                # q_ind variable
-                q_ind = py.value(model.q_ind[t, s])
+                # q_rent_final_hat variable
+                q_rent_final_hat = py.value(model.q_rent_final_hat[t, s])
                 data.append({
-                    'VAR':"q_ind",
+                    'VAR':"q_rent_final_hat",
                     'T_SLICES': t,
                     'SCEN': s,
                     'PRODU': None,
-                    'VALUE': q_ind,
-                    'UNITATS': 'KWH/(PERSONA I APAT)'
-                })
-
-                # q_hab variable
-                q_hab = py.value(model.q_hab[t, s])
-                data.append({
-                    'VAR':"q_hab",
-                    'T_SLICES': t,
-                    'SCEN': s,
-                    'PRODU': None,
-                    'VALUE': q_hab,
+                    'VALUE': q_rent_final_hat,
                     'UNITATS': 'KWH/HABITATGE'
                 })
-                for p in model.P:
 
-                    # q_end variable
-                    q_end = py.value(model.q_end[t, s, p])
+                # q_rent_year variable
+                q_rent_year = py.value(model.q_rent_year[t, s])
+                data.append({
+                    'VAR':"q_rent_year",
+                    'T_SLICES': t,
+                    'SCEN': s,
+                    'PRODU': None,
+                    'VALUE': q_rent_year,
+                    'UNITATS': 'KWH/HABITATGE'
+                })
+                for r in model.R:
+
+                    # q_rent_final variable
+                    q_rent_final = py.value(model.q_rent_final[t, s, r])
                     data.append({
-                        'VAR':"q_end",
+                        'VAR':"q_rent_final",
                         'T_SLICES': t,
                         'SCEN': s,
-                        'PRODU': p,
-                        'VALUE': q_end,
-                        'UNITATS': 'KWH/HABITATGE'
+                        'PRODU': r,
+                        'VALUE': q_rent_final,
+                        'UNITATS': 'KWH/rentat'
                 })
         data = pd.DataFrame(data)
-        data.to_sql('results_rentadora', conn, index=False, if_exists='replace')
-
-        end_time = time.time()
-
+        data.to_sql('rentadora_results', conn, index=False, if_exists='replace')
     
-        print_i = print_i + 1
-        print("{:>1} {:>2} {:>1}".format('rentadora sector projected in', np.format_float_positional(abs(end_time - start_time), 2), 'seconds.'))
-
 if __name__ == "__main__":
     mod = icaen_rentadora_projection()
-    #print("Iniciant lectura")
     mod.read("TEMOA_ICAEN.sqlite")
-    #print("Lectura OK")
-    #print("Iniciant model")
     mod.RunModel()

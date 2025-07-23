@@ -23,6 +23,7 @@ INSERT INTO parametres VALUES('CONGN');    -- Consum real GN per a cuina
 INSERT INTO parametres VALUES('CONSRENT');   -- Dades consum segons tipus de rentat (r)
 INSERT INTO parametres VALUES('CANVRENT');   -- Canvis en el consum segons el tipus de rentat (t,s)
 INSERT INTO parametres VALUES('DRENT');      -- Distribució ús tipus de rentat (t,s,r)
+INSERT INTO parametres VALUES('NRENTP');     -- Numero de rentats per persona i setaman (t,s)
 
 --  INTERVALS TEMPORALS DE LES DADES INTRODUIDES (t)
 CREATE TABLE time_slices (
@@ -346,6 +347,24 @@ INSERT INTO rentadora VALUES ('PERHAB', NULL, 2050, NULL, 2.303, 'PERSONES/HABIT
 INSERT INTO rentadora VALUES ('CONSRENT', NULL, 2010, 'FRED', 0.3, 'KWH/RENTAT', 0);
 INSERT INTO rentadora VALUES ('CONSRENT', NULL, 2010, 'TEMP', 1.1, 'KWH/RENTAT', 0);
 INSERT INTO rentadora VALUES ('CONSRENT', NULL, 2010, 'CALE', 1.3, 'KWH/RENTAT', 0);
+
+-- Numero de rentats per persona i setmana (t,s)
+
+INSERT INTO rentadora VALUES ('NRENTP', 'BASE', 2010, NULL, 2.709, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('NRENTP', 'BASE', 2015, NULL, 2.709, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('NRENTP', 'BASE', 2020, NULL, 2.709, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('NRENTP', 'BASE', 2025, NULL, 2.709, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('NRENTP', 'BASE', 2030, NULL, 2.709, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('NRENTP', 'BASE', 2040, NULL, 2.709, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('NRENTP', 'BASE', 2050, NULL, 2.709, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('NRENTP', 'APOSTA', 2010, NULL, 2.709, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('NRENTP', 'APOSTA', 2015, NULL, 2.709, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('NRENTP', 'APOSTA', 2020, NULL, 2.709, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('NRENTP', 'APOSTA', 2025, NULL, 2.709, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('NRENTP', 'APOSTA', 2030, NULL, 2.709, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('NRENTP', 'APOSTA', 2040, NULL, 2.709, 'TANT PER U', 0);
+INSERT INTO rentadora VALUES ('NRENTP', 'APOSTA', 2050, NULL, 2.709, 'TANT PER U', 0);
+
 
 -- Canvis en el consum segons el tipus de rentat (t,s)
 

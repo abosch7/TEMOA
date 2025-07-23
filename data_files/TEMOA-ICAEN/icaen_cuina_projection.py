@@ -83,7 +83,7 @@ class icaen_cuina_projection:
         model.cANVAP = py.Param(model.T, model.S, rule=cANVAP_rule)
 
         def rEND_rule(model,t,s,p):
-            return self.rEND[(self.rEND['T_SLICES'] == t) & (self.rEND['SCEN'] == s)& (self.rEPFORM['PRODU'] == p)]['VALUE'].iloc[0]
+            return self.rEND[(self.rEND['T_SLICES'] == t) & (self.rEND['SCEN'] == s)& (self.rEND['PRODU'] == p)]['VALUE'].iloc[0]
         model.rEND = py.Param(model.T, model.S, model.P, rule=rEND_rule)
 
         def pERHAB_rule(model,t):
@@ -144,28 +144,10 @@ class icaen_cuina_projection:
         
         model = self.model()
 
-        print('_______________________________________________________________________')
-        print()
-        print("{:>62}".format('Output code of icaen_cuina_projection.py:'))
-        print()
-        
-        start_time = time.time()
-
-        print_outcome = {'cuina':                    False
-                 }
-        print_i = 0
-        
         with Solver("gurobi") as solver:
-             results = solver.solve(model, tee=False)
-
-        #print("Resolucio OK")
-
-    #     INICI ESCRIPTURA  
-
-        #print("Iniciant escriptura")
+            solver.solve(model, tee=False)
 
         data = []
-
         # g_GN Variable
         q_GN = py.value(model.q_GN)
         data.append({
@@ -213,13 +195,7 @@ class icaen_cuina_projection:
                         'UNITATS': 'KWH/HABITATGE'
                 })
         data = pd.DataFrame(data)
-        data.to_sql('results_cuina', conn, index=False, if_exists='replace')
-
-        end_time = time.time()
-
-    
-        print_i = print_i + 1
-        print("{:>1} {:>2} {:>1}".format('Cuina sector projected in', np.format_float_positional(abs(end_time - start_time), 2), 'seconds.'))
+        data.to_sql('cuina_results', conn, index=False, if_exists='replace')
 
 if __name__ == "__main__":
     mod = icaen_cuina_projection()
